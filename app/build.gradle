@@ -4,7 +4,7 @@ android {
   compileSdkVersion 32
   buildToolsVersion "25.0.2"
   defaultConfig {
-    applicationId "com.xiaopo.flying.stickerview"
+    applicationId "com.slopeez"
     minSdkVersion 14
     targetSdkVersion 30
     versionCode 1

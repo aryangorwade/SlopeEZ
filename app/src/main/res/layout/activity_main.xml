@@ -7,7 +7,7 @@
     android:layout_gravity="center"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context="com.slopeez.MainActivity">
 
     <!--recycler view for displaying the list of images-->
     <androidx.recyclerview.widget.RecyclerView
