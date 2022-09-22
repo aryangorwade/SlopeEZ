@@ -59,6 +59,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
       //      Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(holder.imageIV);
 // -------------------------------------------------------------------------------- NEW CODE THAT MAKES APP FASTER
                                                                                   // SCROLLING IS SMOOTH
+
+   // TODO: make sure that scrolling smooth on actual testing device
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 8;
             String path = imgFile.getPath();

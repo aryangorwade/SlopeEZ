@@ -23,9 +23,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.slopeez.R;
-
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> imagePaths;
     private RecyclerView imagesRV;
     private RecyclerViewAdapter imageRVAdapter;
+    private SwipeRefreshLayout refreshLayout;
 
     // for notifications
     private final String CHANNEL_ID = "permission_notifications";
@@ -74,6 +73,20 @@ public class MainActivity extends AppCompatActivity {
             // initializing our recycler view.
             imagePaths = new ArrayList<>();
             imagesRV = findViewById(R.id.idRVImages);
+
+            refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+
+            // SetOnRefreshListener on SwipeRefreshLayout
+            refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    refreshLayout.setRefreshing(false);
+                    // Call recyclerviewadapter's onbindviewholder
+                    imagePaths.clear();
+                    prepareRecyclerView();
+                    getImagePath();
+                }
+            });
 
             // calling a method to
             // prepare our recycler view.
