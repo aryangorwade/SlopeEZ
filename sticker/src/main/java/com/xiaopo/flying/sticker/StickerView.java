@@ -778,7 +778,8 @@ public class StickerView extends FrameLayout {
   public void save(@NonNull File file) {
     try {
       StickerUtils.saveImageToGallery(file, createBitmap());
-      StickerUtils.notifySystemGallery(getContext(), file);
+//      TODO: commented this out cuz causing instability; later revisit and find and fix exact cause in this method
+//      StickerUtils.notifySystemGallery(getContext(), file);
     } catch (IllegalArgumentException | IllegalStateException ignored) {
       //
     }

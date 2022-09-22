@@ -80,14 +80,16 @@ public class ImageDetailActivity extends AppCompatActivity {
                 com.xiaopo.flying.sticker.R.drawable.sticker_ic_flip_white_18dp),
                 BitmapStickerIcon.RIGHT_TOP);
         flipIcon.setIconEvent(new FlipHorizontallyEvent());
-
+/*
         BitmapStickerIcon heartIcon =
                 new BitmapStickerIcon(ContextCompat.getDrawable(this, R.drawable.ic_favorite_white_24dp),
                         BitmapStickerIcon.LEFT_BOTTOM);
         // TODO: change hello icon event to "Glad you're loving it!" or smth
         heartIcon.setIconEvent(new HelloIconEvent());
 
-        stickerView.setIcons(Arrays.asList(deleteIcon, zoomIcon, flipIcon, heartIcon));
+ */
+
+        stickerView.setIcons(Arrays.asList(deleteIcon, zoomIcon, flipIcon)); // hearticon was present here
 
         //default icon layout
         //stickerView.configDefaultIcons();

@@ -2,6 +2,8 @@ package com.slopeez;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +15,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.squareup.picasso.Picasso;
 import com.slopeez.R;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RecyclerViewHolder> {
@@ -43,12 +51,50 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         // path which we have stored in our list.
         File imgFile = new File(imagePathArrayList.get(position));
 
+        String name = imgFile.getName();
         // on below line we are checking if tje file exists or not.
         if (imgFile.exists()) {
 
             // if the file exists then we are displaying that file in our image view using picasso library.
       //      Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(holder.imageIV);
-            Picasso.get().load(imgFile).into(holder.imageIV);
+// -------------------------------------------------------------------------------- NEW CODE THAT MAKES APP FASTER
+                                                                                  // SCROLLING IS SMOOTH
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 8;
+            String path = imgFile.getPath();
+            Bitmap b = BitmapFactory.decodeFile(path, options);
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            b.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+            byte[] bitmapdata = bos.toByteArray();
+
+            File f = new File(context.getCacheDir(), name);
+//write the bytes in file
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(f);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                fos.write(bitmapdata);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                fos.flush();
+            } catch (IOException e ) {
+                e.printStackTrace();
+            }
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+// --------------------------------------------------------------------------------
+            // original: Picasso.get().load(imgFile).into(holder.imageIV);
+            Picasso.get().load(f).into(holder.imageIV);
 
             // on below line we are adding click listener to our item of recycler view.
             holder.itemView.setOnClickListener(new View.OnClickListener() {
