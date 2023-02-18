@@ -1,5 +1,6 @@
 package com.slopeez;
 
+import static com.slopeez.FreeformAngleMeasureActivity.exit2;
 import static com.slopeez.FreeformAngleMeasureActivity.thread;
 
 import android.content.Context;
@@ -19,16 +20,16 @@ import java.util.ArrayList;
 
 public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatImageView implements View.OnTouchListener {
 
-    public static final ArrayList<Dot> dots = new ArrayList<>();
+    public static int[] numDots = new int[100];
+    public static final ArrayList<ArrayList<Dot>> angles = new ArrayList<ArrayList<Dot>>();
     public static Paint dotPaint;
     public static Paint linePaint;
     public static Dot touchedDot;
     private final int MAX_DOTS = 3;
-    public static int numDots = 0;
     public static int paintColor = 0;
+    public static int currAngle = 0;
     public float scale = 1;
 
-    // --------------------------------------- DELETE IF FAILS
     float[] lastEvent = null;
     float d = 0f;
     float newRot = 0f;
@@ -42,7 +43,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     private PointF mid = new PointF();
     float oldDist = 1f;
     private float xCoOrdinate, yCoOrdinate;
-    // -------------------------------------------
 
     public DrawableDotImageView(@NonNull Context context) {
         super(context);
@@ -96,21 +96,33 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             }
         }
 
-        dots.forEach((dot) -> {
+        if (angles.size() != 0) {
+
+            for (int j = 0; j < angles.size(); ++j) {
+                if (numDots[j] != 0) {
+                    for (int i = 0; i < angles.get(j).size(); ++i) {
+                        canvas.drawCircle(angles.get(j).get(i).getX(), angles.get(j).get(i).getY(), angles.get(j).get(i).getRadius() / (2 * scale), dotPaint);
+                        Log.d("ImageView", "Drawing X: " + angles.get(j).get(i).x + " Y: " + angles.get(j).get(i).y);
+                    }
+                }
+
+        /*
+                angles.get(currAngle).forEach((dot) -> {
             canvas.drawCircle(dot.getX(), dot.getY(), dot.getRadius()/(2*scale), dotPaint);
             Log.d("ImageView", "Drawing X: " + dot.x + " Y: " + dot.y);
         });
+         */
 
-        // draw lines between the three dots: 0 to 1 and 1 to 2
-        if (numDots == 3)
-        {
-            //          graphics.drawLine
-            linePaint.setStrokeWidth(5/scale);
-            canvas.drawLine(dots.get(0).x, dots.get(0).y, dots.get(1).x, dots.get(1).y, linePaint);
-            canvas.drawLine(dots.get(1).x, dots.get(1).y, dots.get(2).x, dots.get(2).y, linePaint);
+                // draw lines between the three dots: 0 to 1 and 1 to 2
+                if (numDots[j] == 3) {
+                    //          graphics.drawLine
+                    linePaint.setStrokeWidth(5 / scale);
+                    canvas.drawLine(angles.get(j).get(0).x, angles.get(j).get(0).y, angles.get(j).get(1).x, angles.get(j).get(1).y, linePaint);
+                    canvas.drawLine(angles.get(j).get(1).x, angles.get(j).get(1).y, angles.get(j).get(2).x, angles.get(j).get(2).y, linePaint);
 
+                }
+            }
         }
-
     }
 
     @Override
@@ -118,7 +130,20 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         // TODO: problem: imageview covering status bar
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                dots.forEach((dot) -> {
+                if (numDots[currAngle] != 0) {
+                    for (int i = 0; i < angles.get(currAngle).size(); ++i) {
+                        if (angles.get(currAngle).get(i).isInside((event.getX()), event.getY())) {
+                            touchedDot = angles.get(currAngle).get(i);
+                            Log.d("ImageView", "Dot touched");
+                        } else {
+                            viewTransformation(v, event);
+                        }
+                    }
+                }
+                break;
+
+                /*
+                angles.get(currAngle).forEach((dot) -> {
                     if (dot.isInside((event.getX()), event.getY())) {
                         touchedDot = dot;
                         Log.d("ImageView", "Dot touched");
@@ -127,7 +152,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                         viewTransformation(v, event);
                     }
                 });
-                break;
+
+                 */
             case MotionEvent.ACTION_MOVE:
                 if (touchedDot != null) {
                     touchedDot.x = event.getX();
@@ -139,24 +165,62 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                     viewTransformation(v, event);
                 }
                 break;
+
             case MotionEvent.ACTION_UP:
                 if (touchedDot != null) {
                     touchedDot = null;
                 } else {
                     dotPaint.setColor(Color.WHITE);
 
-                    if (numDots <= MAX_DOTS-1) {
-                        dots.add(new Dot(event.getX(), event.getY(), 35));
-                        ++numDots;
+                    ArrayList<Dot> temp;
+
+                    if (numDots[currAngle] <= MAX_DOTS-1) {
+                        if (numDots[currAngle] != 0) {
+                            temp = angles.get(currAngle);
+                        } else {
+                            temp = new ArrayList<Dot>();
+                        }
+
+                        temp.add(new Dot(event.getX(), event.getY(), 35));
+
+                        if (numDots[currAngle] != 0) {
+                            angles.set(currAngle, temp);
+                        } else {
+                            angles.add(temp);
+                        }
+                        //       angles.get(currAngle).add(new Dot(event.getX(), event.getY(), 35));
+                        ++numDots[currAngle];
                         invalidate();
                         Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-                        if (numDots == MAX_DOTS)
+                        if (numDots[currAngle] == MAX_DOTS)
                         {
-                            thread.start();
+                            FreeformAngleMeasureActivity.exit2 = true;
+                            thread.interrupt();
+                            try {
+                                thread.start();
+                            } catch (IllegalThreadStateException e){
+                                exit2 = true;
+                                thread.interrupt();
+                                thread.interrupt();
+                                // TODO: kill the damn thread
+                                thread.interrupt();
+                                exit2 = true;
+                            }
                         }
-                    }
-                    viewTransformation(v, event);
+                    } else if (numDots[currAngle] == 3)
+                    {
+                        ++currAngle;
+
+                        temp = new ArrayList<Dot>();
+                        temp.add(new Dot(event.getX(), event.getY(), 35));
+                        angles.add(temp);
+
+                        ++numDots[currAngle];
+                        invalidate();
+                        Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+                        }
                 }
+                viewTransformation(v, event);
                 break;
             case MotionEvent.ACTION_CANCEL:
                 viewTransformation(v, event);

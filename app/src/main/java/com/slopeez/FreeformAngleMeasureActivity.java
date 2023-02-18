@@ -2,6 +2,7 @@ package com.slopeez;
 
 import static android.content.ContentValues.TAG;
 
+import static com.slopeez.DrawableDotImageView.currAngle;
 import static com.slopeez.DrawableDotImageView.dotPaint;
 import static com.slopeez.DrawableDotImageView.linePaint;
 import static com.slopeez.DrawableDotImageView.paintColor;
@@ -65,6 +66,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public TextView angleView;
     public static Thread thread;
     Toolbar toolbar2;
+    public static boolean exit2 = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,33 +92,38 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
  */
         // if the file exists then we are loading that image in our image view.
-        if (ImageDetailActivity.imgFile.exists()) {
+     //   if (ImageDetailActivity.imgFile.exists()) {
             Picasso.get().load(ImageDetailActivity.imgFile).placeholder(R.drawable.ic_launcher_background).into(pointsView);
             imageFile2 = ImageDetailActivity.imgFile;
-        }
+    //    }
 
         angleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30f);
-        thread = new Thread() {
 
+        thread = new Thread() {
             @Override
             public void run() {
-                try {
-                    while (!this.isInterrupted()) {
-                        Thread.sleep(10);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                pointsView.invalidate();
-                                double d = calcAngle();
-                                if (d == -1800000) {
-                                    angleView.setText("Angle: -");
-                                } else {
-                                    angleView.setText("Inner angle: " + String.format("%.2f", d) + "° | Outer: " + String.format("%.2f", 360 - d) + "°");
+                while (!exit2) {
+                    try {
+                        while (!this.isInterrupted()) {
+                            Thread.sleep(10);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pointsView.invalidate();
+                                    double d = calcAngle();
+                                    if (d == -1800000) {
+                                        angleView.setText("Angle: -");
+                                    } else {
+                                        angleView.setText("Inner angle: " + String.format("%.2f", d) + "° | Outer: " + String.format("%.2f", 360 - d) + "°");
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                    } catch (InterruptedException e) {
                     }
-                } catch (InterruptedException e) {
+                    catch (IllegalThreadStateException e){
+
+                    }
                 }
             }
         };
@@ -132,8 +139,9 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     // TODO: store the image thumbnails in an array instead of remaking them each time: will make app faster. check if u can move image
 
     public void reset(View view) {
-        DrawableDotImageView.dots.clear();
-        DrawableDotImageView.numDots = 0;
+        DrawableDotImageView.angles.clear();
+        currAngle = 0;
+        DrawableDotImageView.numDots = new int[100];
         DrawableDotImageView.touchedDot = null;
         startActivity(new Intent(FreeformAngleMeasureActivity.this, FreeformAngleMeasureActivity.class));
         overridePendingTransition(0,0);
@@ -141,8 +149,9 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        DrawableDotImageView.dots.clear();
-        DrawableDotImageView.numDots = 0;
+        DrawableDotImageView.angles.clear();
+        currAngle = 0;
+        DrawableDotImageView.numDots = new int[100];
         DrawableDotImageView.touchedDot = null;
         dotPaint = null;
         startActivity(new Intent(FreeformAngleMeasureActivity.this, ImageDetailActivity.class));
@@ -193,18 +202,26 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     public double calcAngle() {
 
-        if (DrawableDotImageView.dots.size() != 3) {
+        if (DrawableDotImageView.angles.size() == 0)
+        {
+            return -1800000;
+        } else if (DrawableDotImageView.angles.get(currAngle).size() == 0)
+        {
             return -1800000;
         }
 
-        double p1x = DrawableDotImageView.dots.get(0).getX();
-        double p1y = DrawableDotImageView.dots.get(0).getY();
+        if (DrawableDotImageView.angles.get(currAngle).size() != 3) {
+            return -1800000;
+        }
 
-        double p2x = DrawableDotImageView.dots.get(1).getX();
-        double p2y = DrawableDotImageView.dots.get(1).getY();
+        double p1x = DrawableDotImageView.angles.get(currAngle).get(0).getX();
+        double p1y = DrawableDotImageView.angles.get(currAngle).get(0).getY();
 
-        double p3x = DrawableDotImageView.dots.get(2).getX();
-        double p3y = DrawableDotImageView.dots.get(2).getY();
+        double p2x = DrawableDotImageView.angles.get(currAngle).get(1).getX();
+        double p2y = DrawableDotImageView.angles.get(currAngle).get(1).getY();
+
+        double p3x = DrawableDotImageView.angles.get(currAngle).get(2).getX();
+        double p3y = DrawableDotImageView.angles.get(currAngle).get(2).getY();
 
         double deg1 = (360 + Math.toDegrees(Math.atan2(p1x - p2x, p1y - p2y))) % 360;
         double deg2 = (360 + Math.toDegrees(Math.atan2(p3x - p2x, p3y - p2y))) % 360;
