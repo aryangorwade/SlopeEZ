@@ -3,6 +3,7 @@ package com.slopeez;
 import static android.content.ContentValues.TAG;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -11,8 +12,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -53,6 +56,7 @@ public class ImageDetailActivity extends AppCompatActivity {
     private DrawableSticker sticker;
     public int count = 0;
     final int NUM_PROTRACTORS = 3;
+    public static File imgFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +92,7 @@ public class ImageDetailActivity extends AppCompatActivity {
         heartIcon.setIconEvent(new HelloIconEvent());
 
  */
+        setSupportActionBar(toolbar);
 
         stickerView.setIcons(Arrays.asList(deleteIcon, zoomIcon, flipIcon)); // hearticon was present here
 
@@ -146,59 +151,32 @@ public class ImageDetailActivity extends AppCompatActivity {
             }
         });
 
-        if (toolbar != null) {
-            toolbar.setTitle(R.string.app_name);
-            toolbar.inflateMenu(R.menu.menu_save);
-            toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    if (item.getItemId() == R.id.item_save) {
-                        File file = FileUtil.getNewFile(ImageDetailActivity.this, "Sticker");
-                        if (file != null) {
-                            stickerView.save(file);
-                            Toast.makeText(ImageDetailActivity.this, "saved in " + file.getAbsolutePath(),
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(ImageDetailActivity.this, "the file is null", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    //                    stickerView.replace(new DrawableSticker(
-                    //                            ContextCompat.getDrawable(MainActivity.this, R.drawable.haizewang_90)
-                    //                    ));
-                    return false;
-                }
-            });
-
-            if(savedInstanceState != null)
-            {
-                count = (savedInstanceState.getInt("count_value"));
-            }
-
-            loadSticker(count);
+        if(savedInstanceState != null)
+        {
+            count = (savedInstanceState.getInt("count_value"));
         }
+
+        loadSticker(count);
 
         // ---------------------------------------------------------------------------------------
 
-        // on below line getting data which we have passed from our adapter class.
-        imgPath = getIntent().getStringExtra("imgPath");
-        // on below line we are getting our image file from its path.
-        File imgFile = new File(imgPath);
-
-        if (imgFile.exists()) {
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-            bmOptions.inSampleSize = 3;
-            photobmp = BitmapFactory.decodeFile(imgFile.getAbsolutePath(), bmOptions);
-            photobmpwidth = photobmp.getWidth();
-            photobmpheight = photobmp.getHeight();
-
-        }
+        try {
+            // on below line getting data which we have passed from our adapter class.
+            imgPath = getIntent().getStringExtra("imgPath");
+            // on below line we are getting our image file from its path.
+            imgFile = new File(imgPath);
 
 // TODO: make multiple protractor images: like one white marking and one grey and one black. make bolder markings
 // TODO: allow user to select between protractor colors
-         // if the file exists then we are loading that image in our image view.
-        if (imgFile.exists()) {
-           Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(photoView);
-       }
+            // if the file exists then we are loading that image in our image view.
+            if (imgFile.exists()) {
+                Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(photoView);
+            }
+        } catch (Exception e)
+        {
+            imgFile = FreeformAngleMeasureActivity.imageFile2;
+            Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(photoView);
+        }
     }
 
     @Override
@@ -254,12 +232,29 @@ public class ImageDetailActivity extends AppCompatActivity {
         stickerView.addSticker(new DrawableSticker(drawable));
     }
 
-    public void testReplace(View view) {
-        if (stickerView.replace(sticker)) {
-            Toast.makeText(ImageDetailActivity.this, "Replace Sticker successfully!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(ImageDetailActivity.this, "Replace Sticker failed!", Toast.LENGTH_SHORT).show();
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_save, menu);
+
+        // enabling action bar app icon and behaving it as toggle button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        return true;
+    }
+
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.item_save) {
+            File file = FileUtil.getNewFile(ImageDetailActivity.this, "SlopeEZ");
+            if (file != null) {
+                stickerView.save(file);
+                Toast.makeText(ImageDetailActivity.this, "saved in " + file.getAbsolutePath(),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
+        return super.onOptionsItemSelected(item);
     }
 
     public void testLock(View view) {
@@ -318,6 +313,16 @@ public class ImageDetailActivity extends AppCompatActivity {
             count = 0;
         }
         loadSticker(count);
+    }
+
+    public void goToFreeform(View view)
+    {
+        startActivity(new Intent(ImageDetailActivity.this, FreeformAngleMeasureActivity.class));
+    }
+
+    public void onBackPressed()
+    {
+        startActivity(new Intent(ImageDetailActivity.this, MainActivity.class));
     }
 }
 

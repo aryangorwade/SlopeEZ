@@ -82,9 +82,9 @@ public class MainActivity extends AppCompatActivity {
                 public void onRefresh() {
                     refreshLayout.setRefreshing(false);
                     // Call recyclerviewadapter's onbindviewholder
-                    imagePaths.clear();
-                    prepareRecyclerView();
-                    getImagePath();
+                     imagePaths.clear();
+                    // prepareRecyclerView();
+                     getImagePath();
                 }
             });
 

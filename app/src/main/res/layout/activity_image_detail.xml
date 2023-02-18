@@ -1,113 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-xmlns:tools="http://schemas.android.com/tools"
-android:id="@+id/activity_main"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:orientation="vertical"
-tools:context="com.slopeez.ImageDetailActivity"
-    >
-
-<androidx.appcompat.widget.Toolbar
-    android:id="@+id/toolbar"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="@color/colorPrimary"
-    >
+    android:layout_height="match_parent"
+    android:background="#4A322828"
+    android:orientation="vertical"
+    tools:context="com.slopeez.ImageDetailActivity">
 
-</androidx.appcompat.widget.Toolbar>
-
-<com.xiaopo.flying.sticker.StickerView
-    android:id="@+id/sticker_view"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_gravity="center"
-    android:layout_weight="1"
-    app:showBorder="true"
-    app:showIcons="true"
-    >
-
-    <ImageView
-        android:id="@+id/borderImage"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:visibility="invisible"
-        android:src="@drawable/border"
-        />
+        android:layout_height="56dp"
+        android:background="@color/colorPrimary"></androidx.appcompat.widget.Toolbar>
 
-    <com.github.chrisbanes.photoview.PhotoView
-        android:id="@+id/photo_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitCenter"
-        android:adjustViewBounds="true"/>
-
-</com.xiaopo.flying.sticker.StickerView>
-
-
-<HorizontalScrollView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@android:color/black"
-    android:scrollbars="none"
-    >
-    <LinearLayout
+    <Button
+        android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        >
+        android:backgroundTint="#F60000"
+        android:onClick="goToFreeform"
+        android:text="Freeform angle selection" />
 
-        <Button
+    <com.xiaopo.flying.sticker.StickerView
+        android:id="@+id/sticker_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        app:showBorder="true"
+        app:showIcons="true">
+
+        <ImageView
+            android:id="@+id/borderImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:src="@drawable/border"
+            android:visibility="invisible" />
+
+        <com.github.chrisbanes.photoview.PhotoView
+            android:id="@+id/photo_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter" />
+
+    </com.xiaopo.flying.sticker.StickerView>
+
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/black"
+        android:scrollbars="none">
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="chngProtractor"
-            android:text="Change"
-            android:layout_centerInParent="true"
-            />
+            android:orientation="horizontal">
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="testAdd"
-            android:text="Add"
-            />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="chngProtractor"
+                android:text="Change" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="testRemove"
-            android:text="Remove"
-            />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="testAdd"
+                android:text="Add" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="testRemoveAll"
-            android:text="Remove All"
-            />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="testRemove"
+                android:text="Remove" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="reset"
-            android:text="Reset"
-            />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="testRemoveAll"
+                android:text="Remove All" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="testLock"
-            android:text="Lock"
-            />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="reset"
+                android:text="Reset" />
 
-    </LinearLayout>
-</HorizontalScrollView>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="testLock"
+                android:text="Lock" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
 </LinearLayout>

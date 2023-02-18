@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:id="@+id/activity_main"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+tools:context="com.slopeez.FreeformAngleMeasureActivity"
+    >
+
+<androidx.appcompat.widget.Toolbar
+    android:id="@+id/toolbar2"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:background="@color/colorPrimary"
+    >
+
+</androidx.appcompat.widget.Toolbar>
+
+    <TextView
+        android:id="@+id/angleView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#F8F6F6"
+        android:backgroundTint="#FFFFFF"
+        android:text="Angle: -"
+        android:textColor="#050505" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:backgroundTint="#FFFFFF"
+        android:visibility="visible">
+
+        <com.slopeez.DrawableDotImageView
+            android:id="@+id/dot_view"
+            android:layout_width="match_parent"
+            android:layout_height="500dp"
+            android:layout_gravity="center"
+            android:layout_weight="0"
+            android:background="#FFFFFF"
+            android:backgroundTint="#FFFFFF"
+            app:layout_constraintBaseline_toTopOf="@id/resetButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:showBorder="true"
+            app:showIcons="true"></com.slopeez.DrawableDotImageView>
+
+        <Button
+            android:id="@+id/resetButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#FB0000"
+            android:onClick="reset"
+            android:text="Reset"
+            app:layout_constraintBottom_toTopOf="@id/button2"
+            tools:layout_editor_absoluteX="0dp" />
+
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#673AB7"
+            android:onClick="changeColor"
+            android:text="Change Color"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="526dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
