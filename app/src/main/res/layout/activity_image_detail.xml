@@ -15,14 +15,6 @@
         android:layout_height="56dp"
         android:background="@color/colorPrimary"></androidx.appcompat.widget.Toolbar>
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#F60000"
-        android:onClick="goToFreeform"
-        android:text="Freeform angle selection" />
-
     <com.xiaopo.flying.sticker.StickerView
         android:id="@+id/sticker_view"
         android:layout_width="match_parent"

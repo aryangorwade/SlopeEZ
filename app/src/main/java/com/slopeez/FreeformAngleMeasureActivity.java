@@ -58,7 +58,6 @@ import java.util.Random;
 
 public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
-    String imgPath;
     public int count = 0;
     private DrawableDotImageView pointsView;
     public static File imageFile2;
@@ -145,7 +144,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.numDots = 0;
         DrawableDotImageView.touchedDot = null;
         dotPaint = null;
-        startActivity(new Intent(FreeformAngleMeasureActivity.this, ImageDetailActivity.class));
+        startActivity(new Intent(FreeformAngleMeasureActivity.this, ModeSelect.class));
     }
 
     @Override

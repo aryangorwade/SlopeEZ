@@ -46,7 +46,7 @@ import java.util.Arrays;
 public class ImageDetailActivity extends AppCompatActivity {
 
  // initializing everything
-    String imgPath;
+    public static String imgPath;
     private PhotoView photoView;
     private boolean orientationIsLocked = false;
     private StickerView stickerView;
@@ -161,13 +161,6 @@ public class ImageDetailActivity extends AppCompatActivity {
         // ---------------------------------------------------------------------------------------
 
         try {
-            // on below line getting data which we have passed from our adapter class.
-            imgPath = getIntent().getStringExtra("imgPath");
-            // on below line we are getting our image file from its path.
-            imgFile = new File(imgPath);
-
-// TODO: make multiple protractor images: like one white marking and one grey and one black. make bolder markings
-// TODO: allow user to select between protractor colors
             // if the file exists then we are loading that image in our image view.
             if (imgFile.exists()) {
                 Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(photoView);
@@ -232,6 +225,11 @@ public class ImageDetailActivity extends AppCompatActivity {
         stickerView.addSticker(new DrawableSticker(drawable));
     }
 
+    public void onBackPressed()
+    {
+        startActivity(new Intent(ImageDetailActivity.this, ModeSelect.class));
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -244,6 +242,12 @@ public class ImageDetailActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        startActivity(new Intent(ImageDetailActivity.this, ModeSelect.class));
+        return true;
+    }
 
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.item_save) {
@@ -318,11 +322,6 @@ public class ImageDetailActivity extends AppCompatActivity {
     public void goToFreeform(View view)
     {
         startActivity(new Intent(ImageDetailActivity.this, FreeformAngleMeasureActivity.class));
-    }
-
-    public void onBackPressed()
-    {
-        startActivity(new Intent(ImageDetailActivity.this, MainActivity.class));
     }
 }
 

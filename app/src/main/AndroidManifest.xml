@@ -20,6 +20,10 @@
         android:parentActivityName=".MainActivity"
         android:exported="true" />
     <activity
+        android:name="com.slopeez.ModeSelect"
+        android:parentActivityName=".ModeSelect"
+        android:exported="true" />
+    <activity
         android:name="com.slopeez.MainActivity"
         android:exported="true">
       <intent-filter>
