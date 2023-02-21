@@ -108,7 +108,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                                 pointsView.invalidate();
                                 double d = calcAngle();
                                 if (d == -1800000) {
-                                    angleView.setText("Angle: -");
+                                    angleView.setText("Tap to place the three dots:");
                                 } else {
                                     angleView.setText("Inner angle: " + String.format("%.2f", d) + "° | Outer: " + String.format("%.2f", 360 - d) + "°");
                                 }

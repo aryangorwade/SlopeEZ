@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:background="#F8F6F6"
         android:backgroundTint="#FFFFFF"
-        android:text="Angle: -"
+        android:text="Tap to place the three dots:"
         android:textColor="#050505" />
 
     <androidx.constraintlayout.widget.ConstraintLayout

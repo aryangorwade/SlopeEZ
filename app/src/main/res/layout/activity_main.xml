@@ -8,20 +8,19 @@
     android:layout_height="match_parent"
     tools:context="com.slopeez.MainActivity">
 
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="center"
-    android:gravity="center"
-    android:orientation="vertical"
-    tools:context="com.slopeez.MainActivity">
-
-    <!--recycler view for displaying the list of images-->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/idRVImages"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:context="com.slopeez.MainActivity">
 
-</RelativeLayout>
+        <!--recycler view for displaying the list of images-->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/idRVImages"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </RelativeLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-

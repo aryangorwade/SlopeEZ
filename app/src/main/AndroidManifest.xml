@@ -21,7 +21,14 @@
         android:exported="true" />
     <activity
         android:name="com.slopeez.ModeSelect"
+        android:screenOrientation="portrait"
         android:parentActivityName=".ModeSelect"
+        android:exported="true" />
+    <activity
+        android:name="com.slopeez.LevelActivity"
+        android:screenOrientation="portrait"
+
+        android:parentActivityName=".LevelActivity"
         android:exported="true" />
     <activity
         android:name="com.slopeez.MainActivity"
