@@ -18,70 +18,77 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#FFFBFB"
-    android:backgroundTint="#FAF8F8">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFBFB"
+        android:backgroundTint="#FFFFFF">
 
 
-    <TextView
-        android:id="@+id/ModeSelectView"
-        android:layout_width="226dp"
-        android:layout_height="46dp"
-        android:layout_marginStart="92dp"
-        android:layout_marginTop="32dp"
-        app:layout_constraintBottom_toTopOf="@id/Freeformbtn"
-        android:layout_marginEnd="92dp"
-        android:text="MODE SELECT"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        android:textColor="@color/black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/ModeSelectView"
+            android:layout_width="226dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="92dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="92dp"
+            android:text="MODE SELECT"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            android:textColor="@color/black"
+            app:layout_constraintBottom_toTopOf="@id/Freeformbtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/Freeformbtn"
-        android:layout_width="316dp"
-        android:layout_height="178dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginEnd="48dp"
-        android:text="Freeform"
-        app:layout_constraintBottom_toTopOf="@id/levellingbtn"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ModeSelectView"
-        android:onClick="goToFreeform"
-        tools:layout_editor_absoluteY="118dp" />
+        <Button
+            android:id="@+id/Freeformbtn"
+            android:layout_width="316dp"
+            android:layout_height="178dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
+            android:background="@drawable/threedots"
+            android:onClick="goToFreeform"
+            android:text="@string/freeformbtnstring"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            android:textColor="#FF0000"
 
-    <Button
-        android:id="@+id/levellingbtn"
-        android:layout_width="316dp"
-        android:layout_height="178dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginEnd="48dp"
-        android:text="Levelling"
-        android:onClick="goToLevel"
-        app:layout_constraintBottom_toTopOf="@id/Protractorbtn"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/Freeformbtn" />
+            app:layout_constraintBottom_toTopOf="@id/levellingbtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ModeSelectView" />
 
-    <Button
-        android:id="@+id/Protractorbtn"
-        android:layout_width="316dp"
-        android:layout_height="178dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginEnd="48dp"
-        android:layout_marginBottom="16dp"
-        android:text="Protractor"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:onClick="goToProtractor"
-        app:layout_constraintTop_toBottomOf="@id/levellingbtn" />
+        <Button
+            android:id="@+id/levellingbtn"
+            android:layout_width="316dp"
+            android:layout_height="178dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
+            android:background="@drawable/levelapple"
+            android:onClick="goToLevel"
+            android:text="@string/levelbtnstring"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            android:textColor="#FF0000"
+            app:layout_constraintBottom_toTopOf="@id/Protractorbtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/Freeformbtn" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+            android:id="@+id/Protractorbtn"
+            android:layout_width="316dp"
+            android:layout_height="178dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/skateprotractor"
+            android:onClick="goToProtractor"
+            android:text="@string/protbtnstring"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            android:textColor="#FF0000"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/levellingbtn" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>
