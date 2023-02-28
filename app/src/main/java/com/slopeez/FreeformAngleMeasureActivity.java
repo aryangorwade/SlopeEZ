@@ -2,9 +2,13 @@ package com.slopeez;
 
 import static android.content.ContentValues.TAG;
 
+import static com.slopeez.DrawableDotImageView.angles;
 import static com.slopeez.DrawableDotImageView.dotPaint;
 import static com.slopeez.DrawableDotImageView.linePaint;
+import static com.slopeez.DrawableDotImageView.numSetScaleDots;
 import static com.slopeez.DrawableDotImageView.paintColor;
+import static com.slopeez.DrawableDotImageView.scaleFactor;
+import static com.slopeez.DrawableDotImageView.setScaleMode;
 
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +25,8 @@ import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -28,7 +34,9 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +56,8 @@ import com.xiaopo.flying.sticker.StickerView;
 import com.xiaopo.flying.sticker.TextSticker;
 import com.xiaopo.flying.sticker.ZoomIconEvent;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -61,9 +71,11 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public int count = 0;
     private DrawableDotImageView pointsView;
     public static File imageFile2;
-    public TextView angleView;
+    public static EditText angleView;
     public static Thread thread;
     Toolbar toolbar2;
+    public ScrollView freeformscroll;
+    public static double scaleDist = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +85,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         setContentView(R.layout.freeform_angle_measure);
         pointsView = (DrawableDotImageView) findViewById(R.id.dot_view);
         toolbar2 = (Toolbar) findViewById(R.id.toolbar2);
-        angleView = (TextView) findViewById(R.id.angleView);
+        angleView = (EditText) findViewById(R.id.angleView);
+        freeformscroll = (ScrollView) findViewById(R.id.scrollView);
 
         // TODO: work on save function and on identification of angle
         // TODO: add perspective correction
@@ -94,14 +107,19 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
             imageFile2 = ImageDetailActivity.imgFile;
         }
 
+        // TODO: why only rotate from middle of screen? unintuituve
+        // TODO: keep some of the view in the screen so that it doesnt get lost
+
         angleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30f);
+
+        /*
         thread = new Thread() {
 
             @Override
             public void run() {
                 try {
                     while (!this.isInterrupted()) {
-                        Thread.sleep(10);
+                        Thread.sleep(1);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -119,6 +137,59 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                 }
             }
         };
+         */
+
+        thread = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    while (!this.isInterrupted()) {
+                        Thread.sleep(1);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (int i = 0; i < angles.size(); ++i)
+                                {
+                                    Double d = calcAngle();
+                                    angles.set(i, d);
+                                }
+                                pointsView.invalidate();
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        angleView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                System.out.println("In beforeTextChanged");
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                try {
+                    System.out.println("Setting scale");
+                    scaleDist = Double.parseDouble(angleView.getText().toString());
+                    if (scaleDist != 0) {
+                        System.out.println(angleView.getText());
+                        double dis = Math.sqrt((Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
+                        scaleFactor = scaleDist / dis; // in (distance/pixel)
+                        System.out.println("-------------------------- ScaleFactor: " + scaleFactor);
+                    }
+                } catch (Exception e){
+
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
 
@@ -133,9 +204,12 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public void reset(View view) {
         DrawableDotImageView.dots.clear();
         DrawableDotImageView.numDots = 0;
+        DrawableDotImageView.numSetScaleDots = 0;
+        DrawableDotImageView.setScaleDots.clear();
         DrawableDotImageView.touchedDot = null;
         startActivity(new Intent(FreeformAngleMeasureActivity.this, FreeformAngleMeasureActivity.class));
         overridePendingTransition(0,0);
+        pointsView.setScaleMode = false;
     }
 
     @Override
@@ -190,7 +264,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         }
     }
 
-    public double calcAngle() {
+    public static double calcAngle() {
 
         if (DrawableDotImageView.dots.size() != 3) {
             return -1800000;
@@ -221,6 +295,16 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                 return 360 - (deg1 - deg2);
             }
         }
+    }
+
+    public void setScale(View view)
+    {
+        if (setScaleMode)
+        {
+            setScaleMode = false;
+        }
+        setScaleMode = true;
+        angleView.setText("Tap to place two dots to set scale");
     }
 
     public void changeColor(View view) {

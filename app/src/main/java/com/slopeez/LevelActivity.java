@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -105,8 +106,8 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
         }
 
         // make textview rotate with phone
-        pitchView.setText("Pitch: " + String.format("%.2f", pitch)); // 0 when phone straight up like in emulator
-        rollView.setText("Roll: " + String.format("%.2f", roll)); // 0 when phone straight up but landscape like in emulator but landscape
+        pitchView.setText("Pitch: " + String.format("%.2f", pitch) + "°"); // 0 when phone straight up like in emulator
+        rollView.setText("Roll: " + String.format("%.2f", roll) + "°"); // 0 when phone straight up but landscape like in emulator but landscape
     }
 
     @Override

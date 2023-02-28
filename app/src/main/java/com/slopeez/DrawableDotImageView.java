@@ -1,16 +1,21 @@
 package com.slopeez;
 
+import static com.slopeez.FreeformAngleMeasureActivity.angleView;
+import static com.slopeez.FreeformAngleMeasureActivity.scaleDist;
 import static com.slopeez.FreeformAngleMeasureActivity.thread;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,13 +25,23 @@ import java.util.ArrayList;
 public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatImageView implements View.OnTouchListener {
 
     public static final ArrayList<Dot> dots = new ArrayList<>();
+    public static ArrayList<Dot> setScaleDots = new ArrayList<>();
+    public static ArrayList<Double> angles = new ArrayList<>();
     public static Paint dotPaint;
     public static Paint linePaint;
     public static Dot touchedDot;
+    public static Paint anglePaint;
+    public static Paint scaledotPaint;
+    public static int numSetScaleDots = 0;
+    public static Paint scalelinePaint;
     private final int MAX_DOTS = 3;
     public static int numDots = 0;
     public static int paintColor = 0;
     public float scale = 1;
+    public static int x1 = 0;
+    public static int y1 = 0;
+    public static double scaleFactor = 0;
+
 
     // --------------------------------------- DELETE IF FAILS
     float[] lastEvent = null;
@@ -42,6 +57,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     private PointF mid = new PointF();
     float oldDist = 1f;
     private float xCoOrdinate, yCoOrdinate;
+    public static boolean setScaleMode = false;
     // -------------------------------------------
 
     public DrawableDotImageView(@NonNull Context context) {
@@ -64,9 +80,18 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         dotPaint = new Paint();
         dotPaint.setColor(Color.WHITE);
         dotPaint.setAlpha(100);
+        scaledotPaint = new Paint();
+        scaledotPaint.setColor(Color.GREEN);
+        scaledotPaint.setAlpha(100);
         linePaint = new Paint();
         linePaint.setStrokeWidth(5/scale);
         linePaint.setColor(Color.WHITE);
+        scalelinePaint = new Paint();
+        scalelinePaint.setStrokeWidth(5/scale);
+        scalelinePaint.setColor(Color.GREEN);
+        anglePaint = new Paint();
+        anglePaint.setColor(Color.RED);
+        anglePaint.setTextSize(100);
         invalidate();
     }
 
@@ -78,21 +103,25 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             if (DrawableDotImageView.paintColor == 0) {
                 dotPaint.setColor(Color.RED);
                 linePaint.setColor(Color.RED);
+                anglePaint.setColor(Color.RED);
             }
 
             if (DrawableDotImageView.paintColor == 1) {
                 dotPaint.setColor(Color.GRAY);
                 linePaint.setColor(Color.GRAY);
+                anglePaint.setColor(Color.GRAY);
             }
 
             if (DrawableDotImageView.paintColor == 2) {
                 dotPaint.setColor(Color.BLACK);
                 linePaint.setColor(Color.BLACK);
+                anglePaint.setColor(Color.BLACK);
             }
 
             if (DrawableDotImageView.paintColor == 3) {
                 dotPaint.setColor(Color.WHITE);
                 linePaint.setColor(Color.WHITE);
+                anglePaint.setColor(Color.WHITE);
             }
         }
 
@@ -101,33 +130,63 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             Log.d("ImageView", "Drawing X: " + dot.x + " Y: " + dot.y);
         });
 
+
+        setScaleDots.forEach((dot) -> {
+            canvas.drawCircle(dot.getX(), dot.getY(), dot.getRadius()/(2*scale), scaledotPaint);
+            System.out.println("Drawing scale dot : " + dot.x + " Y: " + dot.y);
+        });
+
+
+        if (numSetScaleDots == 2)
+        {
+            System.out.println(setScaleDots.toString());
+            System.out.println("Points number" + numSetScaleDots);
+            scalelinePaint.setStrokeWidth(5/scale);
+            canvas.drawLine(setScaleDots.get(0).x, setScaleDots.get(0).y, setScaleDots.get(1).x, setScaleDots.get(1).y, scalelinePaint);
+            System.out.println("Drawing scale line");
+
+        }
+
         // draw lines between the three dots: 0 to 1 and 1 to 2
         if (numDots == 3)
         {
             //          graphics.drawLine
             linePaint.setStrokeWidth(5/scale);
+            anglePaint.setTextSize(50/scale);
             canvas.drawLine(dots.get(0).x, dots.get(0).y, dots.get(1).x, dots.get(1).y, linePaint);
             canvas.drawLine(dots.get(1).x, dots.get(1).y, dots.get(2).x, dots.get(2).y, linePaint);
-
+            for (int i = 0; i < angles.size(); ++i) {
+                float centerX = (dots.get(0).x + dots.get(1).x + dots.get(2).x) / 3;
+                float centerY = (dots.get(0).y + dots.get(1).y + dots.get(2).y) / 3;
+                canvas.drawText(String.format("%.2f", angles.get(i)), centerX, centerY, anglePaint);
+            }
         }
-
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        // TODO: problem: imageview covering status bar
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                dots.forEach((dot) -> {
-                    if (dot.isInside((event.getX()), event.getY())) {
-                        touchedDot = dot;
-                        Log.d("ImageView", "Dot touched");
-                    }
-                    else {
-                        viewTransformation(v, event);
-                    }
-                });
+                    setScaleDots.forEach((dot) -> {
+                        if (dot.isInside((event.getX()), event.getY())) {
+                            touchedDot = dot;
+                            Log.d("ImageView", "Dot touched");
+                        } else {
+                            viewTransformation(v, event);
+                        }
+                    });
+
+                    dots.forEach((dot) -> {
+                        if (dot.isInside((event.getX()), event.getY())) {
+                            touchedDot = dot;
+                            Log.d("ImageView", "Dot touched");
+                        } else {
+                            viewTransformation(v, event);
+                        }
+                    });
                 break;
+
             case MotionEvent.ACTION_MOVE:
                 if (touchedDot != null) {
                     touchedDot.x = event.getX();
@@ -139,23 +198,38 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                     viewTransformation(v, event);
                 }
                 break;
+
             case MotionEvent.ACTION_UP:
                 if (touchedDot != null) {
                     touchedDot = null;
                 } else {
                     dotPaint.setColor(Color.WHITE);
 
-                    if (numDots <= MAX_DOTS-1) {
-                        dots.add(new Dot(event.getX(), event.getY(), 35));
-                        ++numDots;
+                    if (setScaleMode == true && numSetScaleDots < 2) {
+                        setScaleDots.add(new Dot(event.getX(), event.getY(), 35));
+                        ++numSetScaleDots;
                         invalidate();
-                        Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-                        if (numDots == MAX_DOTS)
-                        {
-                            thread.start();
+                        if (numSetScaleDots == 2) {
+                            setScaleMode = true;
+                            FreeformAngleMeasureActivity.angleView.setText("");
+                            FreeformAngleMeasureActivity.angleView.setHint("What is this distance? ");
+
+// TODO: create arraylist with all lines to display distances easily
                         }
+                    } else {
+
+                        if (numDots <= MAX_DOTS - 1) {
+                            dots.add(new Dot(event.getX(), event.getY(), 35));
+                            ++numDots;
+                            invalidate();
+                            System.out.println("set scale Dot created X: " + event.getX() + " Y: " + event.getY());
+                            if (numDots == MAX_DOTS) {
+                                thread.start();
+                                angles.add(FreeformAngleMeasureActivity.calcAngle());
+                            }
+                        }
+                        viewTransformation(v, event);
                     }
-                    viewTransformation(v, event);
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -249,12 +323,17 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                         float newDist1 = spacing(event);
                         if (newDist1 > 10f) {
                             scale = newDist1 / oldDist * view.getScaleX();
+                            // Can't zoom to scale less than default
+                            if (scale < 1.0f)
+                            {
+                                scale = 1.0f;
+                            }
                             view.setScaleX(scale);
                             view.setScaleY(scale);
                         }
                         if (lastEvent != null) {
-                            newRot = rotation(event);
-                            view.setRotation((float) (view.getRotation() + (newRot - d)));
+                           newRot = rotation(event);
+                           view.setRotation((float) (view.getRotation() + (newRot - d)));
                         }
                     }
                 }

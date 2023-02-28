@@ -5,16 +5,15 @@
     android:id="@+id/freeformangle"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:backgroundTint="#FFFFFF"
     android:orientation="vertical"
-    tools:context="com.slopeez.FreeformAngleMeasureActivity"
-    >
+    tools:context="com.slopeez.FreeformAngleMeasureActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/modeselecttoolbar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@color/colorPrimary"
-        >
+        android:background="@color/colorPrimary">
 
     </androidx.appcompat.widget.Toolbar>
 

@@ -11,6 +11,7 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar2"
+        android:elevation="50dp"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@color/colorPrimary"
@@ -18,56 +19,64 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <TextView
+    <EditText
         android:id="@+id/angleView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#F8F6F6"
+        android:elevation="50dp"
         android:backgroundTint="#FFFFFF"
         android:text="Tap to place the three dots:"
         android:textColor="#050505" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+
+    <com.slopeez.DrawableDotImageView
+        android:id="@+id/dot_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        android:layout_weight="1"
         android:background="#FFFFFF"
-        android:backgroundTint="#FFFFFF"
-        android:visibility="visible">
+        android:backgroundTint="#00FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:showBorder="true"
+        app:showIcons="true"></com.slopeez.DrawableDotImageView>
 
-        <com.slopeez.DrawableDotImageView
-            android:id="@+id/dot_view"
-            android:layout_width="match_parent"
-            android:layout_height="500dp"
-            android:layout_gravity="center"
-            android:layout_weight="0"
-            android:background="#FFFFFF"
-            android:backgroundTint="#FFFFFF"
-            app:layout_constraintBaseline_toTopOf="@id/resetButton"
-            app:layout_constraintTop_toTopOf="parent"
-            app:showBorder="true"
-            app:showIcons="true"></com.slopeez.DrawableDotImageView>
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/black"
+        android:scrollbars="none">
 
-        <Button
-            android:id="@+id/resetButton"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:backgroundTint="#FB0000"
-            android:onClick="reset"
-            android:text="Reset"
-            app:layout_constraintBottom_toTopOf="@id/button2"
-            tools:layout_editor_absoluteX="0dp" />
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/button2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="#673AB7"
-            android:onClick="changeColor"
-            android:text="Change Color"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:layout_editor_absoluteX="0dp"
-            tools:layout_editor_absoluteY="526dp" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="setScale"
+                android:text="        Set Scale       " />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="changeColor"
+                android:text="       Change Color     " />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="reset"
+                android:text="         Reset        " />
+
+
+        </LinearLayout>
+    </HorizontalScrollView>
 
 </LinearLayout>
