@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -41,7 +42,9 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static int x1 = 0;
     public static int y1 = 0;
     public static double scaleFactor = 0;
+    public static boolean degree;
 
+ // TODO: toggle for deg/rad and for line/angle
 
     // --------------------------------------- DELETE IF FAILS
     float[] lastEvent = null;
@@ -52,6 +55,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     private static final int NONE = 0;
     private static final int DRAG = 1;
     private static final int ZOOM = 2;
+    public float getRotation = 0;
     private int mode = NONE;
     private PointF start = new PointF();
     private PointF mid = new PointF();
@@ -92,6 +96,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         anglePaint = new Paint();
         anglePaint.setColor(Color.RED);
         anglePaint.setTextSize(100);
+        anglePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         invalidate();
     }
 
@@ -158,7 +163,13 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             for (int i = 0; i < angles.size(); ++i) {
                 float centerX = (dots.get(0).x + dots.get(1).x + dots.get(2).x) / 3;
                 float centerY = (dots.get(0).y + dots.get(1).y + dots.get(2).y) / 3;
-                canvas.drawText(String.format("%.2f", angles.get(i)), centerX, centerY, anglePaint);
+                if (!degree) {
+                    canvas.drawText((String.format("%.2f", angles.get(i)) + "°"), centerX, centerY, anglePaint);
+                }
+                else {
+                    double rad = (Math.PI / 180) * angles.get(i);
+                    canvas.drawText((String.format("%.2f", rad ) + " rad"), centerX, centerY, anglePaint);
+                }
             }
         }
     }
@@ -168,23 +179,23 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                    setScaleDots.forEach((dot) -> {
-                        if (dot.isInside((event.getX()), event.getY())) {
-                            touchedDot = dot;
-                            Log.d("ImageView", "Dot touched");
-                        } else {
-                            viewTransformation(v, event);
-                        }
-                    });
+                setScaleDots.forEach((dot) -> {
+                    if (dot.isInside((event.getX()), event.getY())) {
+                        touchedDot = dot;
+                        Log.d("ImageView", "Dot touched");
+                    } else {
+                        viewTransformation(v, event);
+                    }
+                });
 
-                    dots.forEach((dot) -> {
-                        if (dot.isInside((event.getX()), event.getY())) {
-                            touchedDot = dot;
-                            Log.d("ImageView", "Dot touched");
-                        } else {
-                            viewTransformation(v, event);
-                        }
-                    });
+                dots.forEach((dot) -> {
+                    if (dot.isInside((event.getX()), event.getY())) {
+                        touchedDot = dot;
+                        Log.d("ImageView", "Dot touched");
+                    } else {
+                        viewTransformation(v, event);
+                    }
+                });
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -332,8 +343,9 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                             view.setScaleY(scale);
                         }
                         if (lastEvent != null) {
-                           newRot = rotation(event);
-                           view.setRotation((float) (view.getRotation() + (newRot - d)));
+                            newRot = rotation(event);
+                            getRotation = view.getRotation();
+                            view.setRotation((float) (view.getRotation() + (newRot - d)));
                         }
                     }
                 }

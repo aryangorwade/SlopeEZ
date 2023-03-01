@@ -3,6 +3,7 @@ package com.slopeez;
 import static android.content.ContentValues.TAG;
 
 import static com.slopeez.DrawableDotImageView.angles;
+import static com.slopeez.DrawableDotImageView.degree;
 import static com.slopeez.DrawableDotImageView.dotPaint;
 import static com.slopeez.DrawableDotImageView.linePaint;
 import static com.slopeez.DrawableDotImageView.numSetScaleDots;
@@ -34,11 +35,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -76,6 +79,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     Toolbar toolbar2;
     public ScrollView freeformscroll;
     public static double scaleDist = 0;
+    ToggleButton degRad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +91,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         toolbar2 = (Toolbar) findViewById(R.id.toolbar2);
         angleView = (EditText) findViewById(R.id.angleView);
         freeformscroll = (ScrollView) findViewById(R.id.scrollView);
+        degRad = (ToggleButton) findViewById(R.id.degRadToggle);
 
         // TODO: work on save function and on identification of angle
         // TODO: add perspective correction
@@ -188,6 +193,20 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
 
+            }
+        });
+
+        degRad.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled
+                    degree = false;
+                    pointsView.invalidate();
+                } else {
+                    // The toggle is disabled
+                    degree = true;
+                    pointsView.invalidate();
+                }
             }
         });
     }

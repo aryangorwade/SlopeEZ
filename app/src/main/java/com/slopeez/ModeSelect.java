@@ -77,4 +77,3 @@ public class ModeSelect extends AppCompatActivity {
         startActivity(new Intent(ModeSelect.this, MainActivity.class));
     }
 }
-

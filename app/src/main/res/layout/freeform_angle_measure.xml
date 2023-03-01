@@ -59,21 +59,32 @@
                 android:layout_centerInParent="true"
                 android:background="?attr/selectableItemBackground"
                 android:onClick="setScale"
-                android:text="        Set Scale       " />
+                android:text="Set Scale" />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
                 android:onClick="changeColor"
-                android:text="       Change Color     " />
+                android:text="Change Color" />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
                 android:onClick="reset"
-                android:text="         Reset        " />
+                android:text="Reset" />
+
+
+            <ToggleButton
+                android:layout_width="wrap_content"
+                android:id="@+id/degRadToggle"
+                android:layout_height="wrap_content"
+                android:background="#FF0000"
+                android:checked="true"
+                android:textOff="Degrees"
+                android:textOn="Radians"
+                />
 
 
         </LinearLayout>
