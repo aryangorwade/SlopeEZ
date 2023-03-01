@@ -1,5 +1,6 @@
 package com.slopeez;
 
+import static com.slopeez.DrawableDotImageView.currAngle;
 import static com.slopeez.DrawableDotImageView.dotPaint;
 import static com.slopeez.ImageDetailActivity.imgFile;
 import static com.slopeez.ImageDetailActivity.imgPath;
@@ -55,8 +56,12 @@ public class ModeSelect extends AppCompatActivity {
 
     public void goToProtractor(View view)
     {
-        DrawableDotImageView.dots.clear();
-        DrawableDotImageView.numDots = 0;
+        DrawableDotImageView.angleList.clear();
+        DrawableDotImageView.angles.clear();
+        currAngle = 0;
+        DrawableDotImageView.numDots = new int[100];
+        DrawableDotImageView.numSetScaleDots = 0;
+        DrawableDotImageView.setScaleDots.clear();
         DrawableDotImageView.touchedDot = null;
         dotPaint = null;
         startActivity(new Intent(ModeSelect.this, ImageDetailActivity.class));

@@ -1,6 +1,7 @@
 package com.slopeez;
 
 import static com.slopeez.FreeformAngleMeasureActivity.angleView;
+import static com.slopeez.FreeformAngleMeasureActivity.calcAngle;
 import static com.slopeez.FreeformAngleMeasureActivity.scaleDist;
 import static com.slopeez.FreeformAngleMeasureActivity.thread;
 
@@ -17,15 +18,16 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatImageView implements View.OnTouchListener {
 
-    public static final ArrayList<Dot> dots = new ArrayList<>();
     public static ArrayList<Dot> setScaleDots = new ArrayList<>();
     public static ArrayList<Double> angles = new ArrayList<>();
     public static Paint dotPaint;
@@ -36,7 +38,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static int numSetScaleDots = 0;
     public static Paint scalelinePaint;
     private final int MAX_DOTS = 3;
-    public static int numDots = 0;
     public static int paintColor = 0;
     public float scale = 1;
     public static int x1 = 0;
@@ -44,7 +45,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static double scaleFactor = 0;
     public static boolean degree;
 
- // TODO: toggle for deg/rad and for line/angle
+    // TODO: toggle for deg/rad and for line/angle
 
     // --------------------------------------- DELETE IF FAILS
     float[] lastEvent = null;
@@ -63,6 +64,10 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     private float xCoOrdinate, yCoOrdinate;
     public static boolean setScaleMode = false;
     // -------------------------------------------
+    public static int[] numDots = new int[100];
+    public static int currAngle = 0;
+    public static final ArrayList<ArrayList<Dot>> angleList = new ArrayList<ArrayList<Dot>>();
+    // -----------------------------------------
 
     public DrawableDotImageView(@NonNull Context context) {
         super(context);
@@ -95,7 +100,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         scalelinePaint.setColor(Color.GREEN);
         anglePaint = new Paint();
         anglePaint.setColor(Color.RED);
-        anglePaint.setTextSize(100);
+        anglePaint.setTextSize(70/scale);
         anglePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         invalidate();
     }
@@ -130,48 +135,41 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             }
         }
 
-        dots.forEach((dot) -> {
-            canvas.drawCircle(dot.getX(), dot.getY(), dot.getRadius()/(2*scale), dotPaint);
-            Log.d("ImageView", "Drawing X: " + dot.x + " Y: " + dot.y);
-        });
+        if (angleList.size() != 0) {
+            for (int j = 0; j < angleList.size(); ++j) {
+                if (numDots[j] != 0) {
+                    for (int i = 0; i < angleList.get(j).size(); ++i) {
+                        canvas.drawCircle(angleList.get(j).get(i).getX(), angleList.get(j).get(i).getY(), angleList.get(j).get(i).getRadius() / (2 * scale), dotPaint);
+                        Log.d("ImageView", "Drawing X: " + angleList.get(j).get(i).x + " Y: " + angleList.get(j).get(i).y);
+                    }
+                }
 
+                // draw lines between the three dots: 0 to 1 and 1 to 2
+                if (numDots[j] == 3) {
+                    //          graphics.drawLine
+                    linePaint.setStrokeWidth(5 / scale);
+                    canvas.drawLine(angleList.get(j).get(0).x, angleList.get(j).get(0).y, angleList.get(j).get(1).x, angleList.get(j).get(1).y, linePaint);
+                    canvas.drawLine(angleList.get(j).get(1).x, angleList.get(j).get(1).y, angleList.get(j).get(2).x, angleList.get(j).get(2).y, linePaint);
+
+                    float centerX = (angleList.get(j).get(0).x + angleList.get(j).get(1).x + angleList.get(j).get(2).x) / 3;
+                    float centerY = (angleList.get(j).get(0).y + angleList.get(j).get(1).y + angleList.get(j).get(2).y) / 3;
+
+                    if (angles.size() != 0 && (angles.size()-1) >= j) {
+                        if (!degree) {
+                            canvas.drawText((String.format("%.2f", angles.get(j)) + "°"), centerX, centerY, anglePaint);
+                        } else {
+                            double rad = (Math.PI / 180) * angles.get(j);
+                            canvas.drawText((String.format("%.2f", rad) + " rad"), centerX, centerY, anglePaint);
+                        }
+                    }
+                }
+            }
+        }
 
         setScaleDots.forEach((dot) -> {
             canvas.drawCircle(dot.getX(), dot.getY(), dot.getRadius()/(2*scale), scaledotPaint);
             System.out.println("Drawing scale dot : " + dot.x + " Y: " + dot.y);
         });
-
-
-        if (numSetScaleDots == 2)
-        {
-            System.out.println(setScaleDots.toString());
-            System.out.println("Points number" + numSetScaleDots);
-            scalelinePaint.setStrokeWidth(5/scale);
-            canvas.drawLine(setScaleDots.get(0).x, setScaleDots.get(0).y, setScaleDots.get(1).x, setScaleDots.get(1).y, scalelinePaint);
-            System.out.println("Drawing scale line");
-
-        }
-
-        // draw lines between the three dots: 0 to 1 and 1 to 2
-        if (numDots == 3)
-        {
-            //          graphics.drawLine
-            linePaint.setStrokeWidth(5/scale);
-            anglePaint.setTextSize(50/scale);
-            canvas.drawLine(dots.get(0).x, dots.get(0).y, dots.get(1).x, dots.get(1).y, linePaint);
-            canvas.drawLine(dots.get(1).x, dots.get(1).y, dots.get(2).x, dots.get(2).y, linePaint);
-            for (int i = 0; i < angles.size(); ++i) {
-                float centerX = (dots.get(0).x + dots.get(1).x + dots.get(2).x) / 3;
-                float centerY = (dots.get(0).y + dots.get(1).y + dots.get(2).y) / 3;
-                if (!degree) {
-                    canvas.drawText((String.format("%.2f", angles.get(i)) + "°"), centerX, centerY, anglePaint);
-                }
-                else {
-                    double rad = (Math.PI / 180) * angles.get(i);
-                    canvas.drawText((String.format("%.2f", rad ) + " rad"), centerX, centerY, anglePaint);
-                }
-            }
-        }
     }
 
     @Override
@@ -188,14 +186,18 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                     }
                 });
 
-                dots.forEach((dot) -> {
-                    if (dot.isInside((event.getX()), event.getY())) {
-                        touchedDot = dot;
-                        Log.d("ImageView", "Dot touched");
-                    } else {
-                        viewTransformation(v, event);
-                    }
-                });
+                for (int i = 0; i < angleList.size(); ++i) {
+                    ArrayList<Dot> dots = angleList.get(i);
+                    dots.forEach((dot) -> {
+                        if (dot.isInside((event.getX()), event.getY())) {
+                            touchedDot = dot;
+                            Log.d("ImageView", "Dot touched");
+                        } else {
+                            viewTransformation(v, event);
+                        }
+                    });
+                }
+                invalidate();
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -208,46 +210,78 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 else {
                     viewTransformation(v, event);
                 }
+                invalidate();
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (touchedDot != null) {
-                    touchedDot = null;
-                } else {
-                    dotPaint.setColor(Color.WHITE);
-
-                    if (setScaleMode == true && numSetScaleDots < 2) {
-                        setScaleDots.add(new Dot(event.getX(), event.getY(), 35));
-                        ++numSetScaleDots;
-                        invalidate();
-                        if (numSetScaleDots == 2) {
-                            setScaleMode = true;
-                            FreeformAngleMeasureActivity.angleView.setText("");
-                            FreeformAngleMeasureActivity.angleView.setHint("What is this distance? ");
-
-// TODO: create arraylist with all lines to display distances easily
-                        }
+                if (viewTransformation(v, event) == false) {
+                    if (touchedDot != null) {
+                        touchedDot = null;
                     } else {
 
-                        if (numDots <= MAX_DOTS - 1) {
-                            dots.add(new Dot(event.getX(), event.getY(), 35));
-                            ++numDots;
+                        if (setScaleMode == true && numSetScaleDots < 2) {
+                            setScaleDots.add(new Dot(event.getX(), event.getY(), 35));
+                            ++numSetScaleDots;
                             invalidate();
-                            System.out.println("set scale Dot created X: " + event.getX() + " Y: " + event.getY());
-                            if (numDots == MAX_DOTS) {
-                                thread.start();
-                                angles.add(FreeformAngleMeasureActivity.calcAngle());
+                            if (numSetScaleDots == 2) {
+                                setScaleMode = true;
+                                FreeformAngleMeasureActivity.angleView.setText("");
+                                FreeformAngleMeasureActivity.angleView.setHint("What is this distance? ");
+
+// TODO: create arraylist with all lines to display distances easily
+                            }
+                        } else {
+                            ArrayList<Dot> temp;
+
+                            if (numDots[currAngle] <= MAX_DOTS - 1) {
+                                if (numDots[currAngle] != 0) {
+                                    temp = angleList.get(currAngle);
+                                } else {
+                                    temp = new ArrayList<Dot>();
+                                }
+
+                                temp.add(new Dot(event.getX(), event.getY(), 35));
+
+                                if (angleList.size() != 0) {
+                                    angleList.set(currAngle, temp);
+                                } else {
+                                    angleList.add(temp);
+                                }
+                                ++numDots[currAngle];
+
+                                if (numDots[currAngle] == 3) {
+                                    angles.add(calcAngle(currAngle));
+                                }
+                                invalidate();
+                                Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+                            } else if (numDots[currAngle] == 3) {
+                                ++currAngle;
+                                temp = new ArrayList<Dot>();
+                                temp.add(new Dot(event.getX(), event.getY(), 35));
+                                angleList.add(temp);
+
+                                ++numDots[currAngle];
+                                invalidate();
+                                Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+
+                                invalidate();
                             }
                         }
-                        viewTransformation(v, event);
                     }
+                    viewTransformation(v, event);
+                    invalidate();
                 }
+                invalidate();
                 break;
+
             case MotionEvent.ACTION_CANCEL:
                 viewTransformation(v, event);
+                invalidate();
                 break;
+
             default:
                 viewTransformation(v, event);
+                invalidate();
                 break;
         }
         return true;
@@ -283,7 +317,9 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     }
 
     // ------------------------------------------------------- ADDED CODE -------------------------
-    private void viewTransformation(View view, MotionEvent event) {
+    private boolean viewTransformation(View view, MotionEvent event) {
+        boolean didItTransform = false;
+
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 xCoOrdinate = view.getX() - event.getRawX();
@@ -293,8 +329,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 isOutSide = false;
                 mode = DRAG;
                 lastEvent = null;
-                break;
-
+                return true;
 
             case MotionEvent.ACTION_POINTER_DOWN:
                 oldDist = spacing(event);
@@ -309,21 +344,24 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 lastEvent[2] = event.getY(0);
                 lastEvent[3] = event.getY(1);
                 d = rotation(event);
-                break;
+                return true;
+
             case MotionEvent.ACTION_UP:
                 isZoomAndRotate = false;
                 if (mode == DRAG) {
                     float x = event.getX();
                     float y = event.getY();
+                    didItTransform = true;
                 }
             case MotionEvent.ACTION_OUTSIDE:
                 isOutSide = true;
                 mode = NONE;
                 lastEvent = null;
+                didItTransform = false;
             case MotionEvent.ACTION_POINTER_UP:
                 mode = NONE;
                 lastEvent = null;
-                break;
+                return false;
             case MotionEvent.ACTION_MOVE:
                 if (!isOutSide) {
                     if (mode == DRAG) {
@@ -349,8 +387,9 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                         }
                     }
                 }
-                break;
+                return true;
         }
+        return didItTransform;
     }
 
     private float rotation(MotionEvent event) {
