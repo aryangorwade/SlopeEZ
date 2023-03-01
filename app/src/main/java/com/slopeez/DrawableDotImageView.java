@@ -2,6 +2,7 @@ package com.slopeez;
 
 import static com.slopeez.FreeformAngleMeasureActivity.angleView;
 import static com.slopeez.FreeformAngleMeasureActivity.calcAngle;
+import static com.slopeez.FreeformAngleMeasureActivity.removeCurr;
 import static com.slopeez.FreeformAngleMeasureActivity.scaleDist;
 import static com.slopeez.FreeformAngleMeasureActivity.thread;
 
@@ -64,7 +65,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     private float xCoOrdinate, yCoOrdinate;
     public static boolean setScaleMode = false;
     // -------------------------------------------
-    public static int[] numDots = new int[100];
+    public static ArrayList<Integer> numDots = new ArrayList<>();
     public static int currAngle = 0;
     public static final ArrayList<ArrayList<Dot>> angleList = new ArrayList<ArrayList<Dot>>();
     // -----------------------------------------
@@ -103,6 +104,11 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         anglePaint.setTextSize(70/scale);
         anglePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         invalidate();
+
+        for (int i = 0; i < 100; ++i)
+        {
+            numDots.add(0);
+        }
     }
 
     @Override
@@ -137,7 +143,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
         if (angleList.size() != 0) {
             for (int j = 0; j < angleList.size(); ++j) {
-                if (numDots[j] != 0) {
+                if (numDots.get(j) != 0) {
                     for (int i = 0; i < angleList.get(j).size(); ++i) {
                         canvas.drawCircle(angleList.get(j).get(i).getX(), angleList.get(j).get(i).getY(), angleList.get(j).get(i).getRadius() / (2 * scale), dotPaint);
                         Log.d("ImageView", "Drawing X: " + angleList.get(j).get(i).x + " Y: " + angleList.get(j).get(i).y);
@@ -145,7 +151,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 }
 
                 // draw lines between the three dots: 0 to 1 and 1 to 2
-                if (numDots[j] == 3) {
+                if (numDots.get(j) == 3) {
                     //          graphics.drawLine
                     linePaint.setStrokeWidth(5 / scale);
                     canvas.drawLine(angleList.get(j).get(0).x, angleList.get(j).get(0).y, angleList.get(j).get(1).x, angleList.get(j).get(1).y, linePaint);
@@ -188,10 +194,22 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
                 for (int i = 0; i < angleList.size(); ++i) {
                     ArrayList<Dot> dots = angleList.get(i);
+                    int finalI = i;
                     dots.forEach((dot) -> {
                         if (dot.isInside((event.getX()), event.getY())) {
                             touchedDot = dot;
                             Log.d("ImageView", "Dot touched");
+
+                            if (removeCurr)
+                            {
+                                angleList.remove(finalI);
+                                angles.remove(finalI);
+                                numDots.remove(finalI);
+                                --currAngle;
+                                touchedDot = null;
+                                removeCurr = false;
+                            }
+
                         } else {
                             viewTransformation(v, event);
                         }
@@ -233,8 +251,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                         } else {
                             ArrayList<Dot> temp;
 
-                            if (numDots[currAngle] <= MAX_DOTS - 1) {
-                                if (numDots[currAngle] != 0) {
+                            if (numDots.get(currAngle) <= MAX_DOTS - 1) {
+                                if (numDots.get(currAngle) != 0) {
                                     temp = angleList.get(currAngle);
                                 } else {
                                     temp = new ArrayList<Dot>();
@@ -247,20 +265,21 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 } else {
                                     angleList.add(temp);
                                 }
-                                ++numDots[currAngle];
 
-                                if (numDots[currAngle] == 3) {
+                                numDots.set(currAngle, (numDots.get(currAngle) + 1));
+
+                                if (numDots.get(currAngle) == 3) {
                                     angles.add(calcAngle(currAngle));
                                 }
                                 invalidate();
                                 Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-                            } else if (numDots[currAngle] == 3) {
+                            } else if (numDots.get(currAngle) == 3) {
                                 ++currAngle;
                                 temp = new ArrayList<Dot>();
                                 temp.add(new Dot(event.getX(), event.getY(), 35));
                                 angleList.add(temp);
 
-                                ++numDots[currAngle];
+                                numDots.set(currAngle, (numDots.get(currAngle) + 1));
                                 invalidate();
                                 Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
 

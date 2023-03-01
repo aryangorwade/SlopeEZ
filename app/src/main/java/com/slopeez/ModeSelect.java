@@ -59,7 +59,7 @@ public class ModeSelect extends AppCompatActivity {
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
         currAngle = 0;
-        DrawableDotImageView.numDots = new int[100];
+        DrawableDotImageView.numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
         DrawableDotImageView.touchedDot = null;

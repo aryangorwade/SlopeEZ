@@ -80,6 +80,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     Toolbar toolbar2;
     public ScrollView freeformscroll;
     public static double scaleDist = 0;
+    public static boolean removeCurr = false;
     ToggleButton degRad;
 
     @Override
@@ -227,7 +228,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
         currAngle = 0;
-        DrawableDotImageView.numDots = new int[100];
+        DrawableDotImageView.numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
         DrawableDotImageView.touchedDot = null;
@@ -241,7 +242,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
         currAngle = 0;
-        DrawableDotImageView.numDots = new int[100];
+        DrawableDotImageView.numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
         DrawableDotImageView.touchedDot = null;
@@ -290,6 +291,11 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void remove (View view)
+    {
+        removeCurr = true;
     }
 
     public static double calcAngle(int position) {
