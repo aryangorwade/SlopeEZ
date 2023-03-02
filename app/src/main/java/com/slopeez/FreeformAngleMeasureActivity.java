@@ -2,6 +2,8 @@ package com.slopeez;
 
 import static android.content.ContentValues.TAG;
 
+import static com.slopeez.DrawableDotImageView.angleList;
+import static com.slopeez.DrawableDotImageView.anglePaint;
 import static com.slopeez.DrawableDotImageView.angles;
 import static com.slopeez.DrawableDotImageView.currAngle;
 import static com.slopeez.DrawableDotImageView.degree;
@@ -9,7 +11,9 @@ import static com.slopeez.DrawableDotImageView.dotPaint;
 import static com.slopeez.DrawableDotImageView.linePaint;
 import static com.slopeez.DrawableDotImageView.numSetScaleDots;
 import static com.slopeez.DrawableDotImageView.paintColor;
+import static com.slopeez.DrawableDotImageView.scale;
 import static com.slopeez.DrawableDotImageView.scaleFactor;
+import static com.slopeez.DrawableDotImageView.scalelinePaint;
 import static com.slopeez.DrawableDotImageView.setScaleMode;
 
 import android.content.Context;
@@ -75,13 +79,14 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public int count = 0;
     private DrawableDotImageView pointsView;
     public static File imageFile2;
-    public static EditText angleView;
+    public static TextView angleView;
     public static Thread thread;
     Toolbar toolbar2;
     public ScrollView freeformscroll;
     public static double scaleDist = 0;
     public static boolean removeCurr = false;
     ToggleButton degRad;
+    public static int angleListSize = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +96,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         setContentView(R.layout.freeform_angle_measure);
         pointsView = (DrawableDotImageView) findViewById(R.id.dot_view);
         toolbar2 = (Toolbar) findViewById(R.id.toolbar2);
-        angleView = (EditText) findViewById(R.id.angleView);
+        angleView = (TextView) findViewById(R.id.angleView);
         freeformscroll = (ScrollView) findViewById(R.id.scrollView);
         degRad = (ToggleButton) findViewById(R.id.degRadToggle);
 
@@ -119,7 +124,6 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
         angleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30f);
 
-        /*
         thread = new Thread() {
 
             @Override
@@ -130,32 +134,16 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                pointsView.invalidate();
-                                double d = calcAngle();
-                                if (d == -1800000) {
-                                    angleView.setText("Tap to place the three dots:");
+                                anglePaint.setTextSize(50/scale);
+                                scalelinePaint.setStrokeWidth(5/scale);
+
+                                angleListSize = angleList.size();
+                                if (removeCurr)
+                                {
+                                    angleView.setText("Tap dot/line to remove");
                                 } else {
-                                    angleView.setText("Inner angle: " + String.format("%.2f", d) + "° | Outer: " + String.format("%.2f", 360 - d) + "°");
+                                    angleView.setText("Tap to place dots for angles:");
                                 }
-                            }
-                        });
-                    }
-                } catch (InterruptedException e) {
-                }
-            }
-        };
-         */
-
-        thread = new Thread() {
-
-            @Override
-            public void run() {
-                try {
-                    while (!this.isInterrupted()) {
-                        Thread.sleep(1);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
                                 for (int i = 0; i < angles.size(); ++i)
                                 {
                                     Double d = calcAngle(i);
@@ -172,6 +160,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
         thread.start();
 
+        /*
         angleView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -199,6 +188,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
             }
         });
+
+         */
 
         degRad.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

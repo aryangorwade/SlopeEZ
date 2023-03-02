@@ -19,14 +19,14 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <EditText
+    <TextView
         android:id="@+id/angleView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#F8F6F6"
         android:elevation="50dp"
         android:backgroundTint="#FFFFFF"
-        android:text="Tap to place the three dots:"
+        android:text="Tap to place dots for angles:"
         android:textColor="#050505" />
 
 
@@ -53,13 +53,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:background="?attr/selectableItemBackground"
-                android:onClick="setScale"
-                android:text="Set Scale" />
+
 
             <Button
                 android:layout_width="wrap_content"

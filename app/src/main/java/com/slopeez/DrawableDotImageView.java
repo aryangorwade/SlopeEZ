@@ -1,8 +1,10 @@
 package com.slopeez;
 
+import static com.slopeez.FreeformAngleMeasureActivity.angleListSize;
 import static com.slopeez.FreeformAngleMeasureActivity.angleView;
 import static com.slopeez.FreeformAngleMeasureActivity.calcAngle;
 import static com.slopeez.FreeformAngleMeasureActivity.removeCurr;
+import java.io.*;
 import static com.slopeez.FreeformAngleMeasureActivity.scaleDist;
 import static com.slopeez.FreeformAngleMeasureActivity.thread;
 
@@ -13,9 +15,11 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -40,13 +44,13 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static Paint scalelinePaint;
     private final int MAX_DOTS = 3;
     public static int paintColor = 0;
-    public float scale = 1;
+    public static float scale = 1;
     public static int x1 = 0;
     public static int y1 = 0;
     public static double scaleFactor = 0;
     public static boolean degree;
+    public static boolean dragged;
 
-    // TODO: toggle for deg/rad and for line/angle
 
     // --------------------------------------- DELETE IF FAILS
     float[] lastEvent = null;
@@ -60,6 +64,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public float getRotation = 0;
     private int mode = NONE;
     private PointF start = new PointF();
+    public boolean justDeleted = false;
     private PointF mid = new PointF();
     float oldDist = 1f;
     private float xCoOrdinate, yCoOrdinate;
@@ -101,7 +106,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         scalelinePaint.setColor(Color.GREEN);
         anglePaint = new Paint();
         anglePaint.setColor(Color.RED);
-        anglePaint.setTextSize(70/scale);
+        anglePaint.setTextSize(50/scale);
         anglePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         invalidate();
 
@@ -183,16 +188,20 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                viewTransformation(v, event);
+
                 setScaleDots.forEach((dot) -> {
                     if (dot.isInside((event.getX()), event.getY())) {
                         touchedDot = dot;
+                        mode = NONE;
+                        dragged = false;
                         Log.d("ImageView", "Dot touched");
                     } else {
                         viewTransformation(v, event);
                     }
                 });
 
-                for (int i = 0; i < angleList.size(); ++i) {
+                for (int i = 0; i < angleList.size(); ++i) { // checks if inside each dot
                     ArrayList<Dot> dots = angleList.get(i);
                     int finalI = i;
                     dots.forEach((dot) -> {
@@ -203,11 +212,16 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                             if (removeCurr)
                             {
                                 angleList.remove(finalI);
-                                angles.remove(finalI);
+                                if (numDots.get(finalI) == 3) {
+                                    angles.remove(finalI);
+                                }
                                 numDots.remove(finalI);
-                                --currAngle;
+                                if (currAngle > 0) {
+                                    --currAngle;
+                                }
                                 touchedDot = null;
                                 removeCurr = false;
+                                justDeleted = true;
                             }
 
                         } else {
@@ -215,26 +229,76 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                         }
                     });
                 }
+
+                for (int j = 0; j < angleList.size(); ++j)
+                {
+                    PointF p2 = new PointF(0, 0);
+                    PointF p0 = new PointF((float)angleList.get(j).get(0).getX(), (float)angleList.get(j).get(0).getY());
+                    if (angleList.get(j).size() >= 2)
+                    {
+                        PointF p1 = new PointF((float)angleList.get(j).get(1).getX(), (float)angleList.get(j).get(1).getY());
+                        if (angleList.get(j).size() == 3)
+                        {
+                            p2 = new PointF((float)angleList.get(j).get(2).getX(), (float)angleList.get(j).get(2).getY());
+                        }
+                        if (isPointOnLineSegment(p0, p1, new PointF((float) event.getX(), (float) event.getY())))
+                        {
+                            if (removeCurr)
+                            {
+                                angleList.remove(j);
+                                if (numDots.get(j) == 3) {
+                                    angles.remove(j);
+                                }
+                                numDots.remove(j);
+                                if (currAngle > 0) {
+                                    --currAngle;
+                                }
+                                touchedDot = null;
+                                removeCurr = false;
+                                justDeleted = true;
+                            }
+                        } else if (angleList.get(j).size() == 3)
+                        {
+                            if (isPointOnLineSegment(p1, p2, new PointF((float) event.getX(), (float) event.getY())))
+                            {
+                                if (removeCurr)
+                                {
+                                    angleList.remove(j);
+                                    if (numDots.get(j) == 3) {
+                                        angles.remove(j);
+                                    }
+                                    numDots.remove(j);
+                                    if (currAngle > 0) {
+                                        --currAngle;
+                                    }
+                                    touchedDot = null;
+                                    removeCurr = false;
+                                    justDeleted = true;
+                                }
+                            }
+                        }
+                    }
+                }
                 invalidate();
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                viewTransformation(v, event);
                 if (touchedDot != null) {
                     touchedDot.x = event.getX();
                     touchedDot.y = event.getY();
                     invalidate();
+                    dragged = false;
+                    mode = NONE;
                     Log.d("ImageView", "Dot moving X: " + touchedDot.x + " Y: " + touchedDot.y);
-                }
-                else {
-                    viewTransformation(v, event);
                 }
                 invalidate();
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (viewTransformation(v, event) == false) {
                     if (touchedDot != null) {
                         touchedDot = null;
+
                     } else {
 
                         if (setScaleMode == true && numSetScaleDots < 2) {
@@ -246,50 +310,58 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 FreeformAngleMeasureActivity.angleView.setText("");
                                 FreeformAngleMeasureActivity.angleView.setHint("What is this distance? ");
 
-// TODO: create arraylist with all lines to display distances easily
                             }
                         } else {
-                            ArrayList<Dot> temp;
+                            if (mode == DRAG && dragged == false && !justDeleted) {
+                                ArrayList<Dot> temp;
 
-                            if (numDots.get(currAngle) <= MAX_DOTS - 1) {
-                                if (numDots.get(currAngle) != 0) {
-                                    temp = angleList.get(currAngle);
-                                } else {
+                                if (numDots.get(currAngle) <= MAX_DOTS - 1) {
+                                    if (numDots.get(currAngle) != 0) {
+                                        temp = angleList.get(currAngle);
+                                    } else {
+                                        temp = new ArrayList<Dot>();
+                                    }
+
+                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+
+                                    if (angleList.size() != 0) {
+                                        angleList.set(currAngle, temp);
+                                    } else {
+                                        angleList.add(temp);
+                                    }
+
+                                    numDots.set(currAngle, (numDots.get(currAngle) + 1));
+
+                                    if (numDots.get(currAngle) == 3) {
+                                        angles.add(calcAngle(currAngle));
+                                    }
+                                    invalidate();
+                                    Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+                                } else if (numDots.get(currAngle) == 3 && !justDeleted) {
+                                    ++currAngle;
                                     temp = new ArrayList<Dot>();
-                                }
-
-                                temp.add(new Dot(event.getX(), event.getY(), 35));
-
-                                if (angleList.size() != 0) {
-                                    angleList.set(currAngle, temp);
-                                } else {
+                                    temp.add(new Dot(event.getX(), event.getY(), 35));
                                     angleList.add(temp);
+
+                                    numDots.set(currAngle, (numDots.get(currAngle) + 1));
+                                    invalidate();
+                                    Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+
+                                    invalidate();
                                 }
-
-                                numDots.set(currAngle, (numDots.get(currAngle) + 1));
-
-                                if (numDots.get(currAngle) == 3) {
-                                    angles.add(calcAngle(currAngle));
+                                if (justDeleted)
+                                {
+                                    justDeleted = false;
                                 }
-                                invalidate();
-                                Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-                            } else if (numDots.get(currAngle) == 3) {
-                                ++currAngle;
-                                temp = new ArrayList<Dot>();
-                                temp.add(new Dot(event.getX(), event.getY(), 35));
-                                angleList.add(temp);
-
-                                numDots.set(currAngle, (numDots.get(currAngle) + 1));
-                                invalidate();
-                                Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-
-                                invalidate();
+                            }
+                            if (justDeleted)
+                            {
+                                justDeleted = false;
                             }
                         }
                     }
-                    viewTransformation(v, event);
-                    invalidate();
-                }
+
+                viewTransformation(v, event);
                 invalidate();
                 break;
 
@@ -336,9 +408,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     }
 
     // ------------------------------------------------------- ADDED CODE -------------------------
-    private boolean viewTransformation(View view, MotionEvent event) {
-        boolean didItTransform = false;
-
+    private void viewTransformation(View view, MotionEvent event) {
+        dragged = false;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 xCoOrdinate = view.getX() - event.getRawX();
@@ -348,7 +419,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 isOutSide = false;
                 mode = DRAG;
                 lastEvent = null;
-                return true;
+                break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
                 oldDist = spacing(event);
@@ -363,29 +434,26 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 lastEvent[2] = event.getY(0);
                 lastEvent[3] = event.getY(1);
                 d = rotation(event);
-                return true;
+                break;
 
             case MotionEvent.ACTION_UP:
-                isZoomAndRotate = false;
                 if (mode == DRAG) {
                     float x = event.getX();
                     float y = event.getY();
-                    didItTransform = true;
                 }
             case MotionEvent.ACTION_OUTSIDE:
                 isOutSide = true;
                 mode = NONE;
                 lastEvent = null;
-                didItTransform = false;
             case MotionEvent.ACTION_POINTER_UP:
                 mode = NONE;
                 lastEvent = null;
-                return false;
+                break;
             case MotionEvent.ACTION_MOVE:
                 if (!isOutSide) {
                     if (mode == DRAG) {
-                        isZoomAndRotate = false;
                         view.animate().x(event.getRawX() + xCoOrdinate).y(event.getRawY() + yCoOrdinate).setDuration(0).start();
+                        dragged = true;
                     }
                     if (mode == ZOOM && event.getPointerCount() == 2) {
                         float newDist1 = spacing(event);
@@ -406,9 +474,34 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                         }
                     }
                 }
-                return true;
         }
-        return didItTransform;
+    }
+
+    public boolean isPointOnLine(PointF lineStaPt, PointF lineEndPt, PointF point) {
+        final float EPSILON = 0.001f;
+        if (Math.abs(lineStaPt.x - lineEndPt.x) < EPSILON) {
+            // We've a vertical line, thus check only the x-value of the point.
+            return (Math.abs(point.x - lineStaPt.x) < EPSILON);
+        } else {
+            float m = (lineEndPt.y - lineStaPt.y) / (lineEndPt.x - lineStaPt.x);
+            float b = lineStaPt.y - m * lineStaPt.x;
+            return (Math.abs(point.y - (m * point.x + b)) < EPSILON);
+        }
+    }
+
+    public boolean isPointOnLineSegment(PointF staPt, PointF endPt, PointF point) {
+        double mindistance = GFG.minDistance(new GFG.pair(staPt.x, staPt.y), new GFG.pair(endPt.x, endPt.y), new GFG.pair (point.x, point.y));
+        if (mindistance <= 25)
+        {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean in_circle(double center_x, double center_y, double radius, double x, double y) {
+        double square_dist = Math.pow((center_x - x), 2) + Math.pow((center_y - y), 2);
+        return square_dist <= Math.pow(radius, 2);
     }
 
     private float rotation(MotionEvent event) {
@@ -431,5 +524,89 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     }
 }
 
+// Java implementation of the approach
+class GFG
+{
+
+    static class pair
+    {
+        double F, S;
+        public pair(double F, double S)
+        {
+            this.F = F;
+            this.S = S;
+        }
+        public pair() {
+        }
+    }
+
+    // Function to return the minimum distance
+// between a line segment AB and a point E
+    static double minDistance(pair A, pair B, pair E) {
+
+        // vector AB
+        pair AB = new pair();
+        AB.F = B.F - A.F;
+        AB.S = B.S - A.S;
+
+        // vector BP
+        pair BE = new pair();
+        BE.F = E.F - B.F;
+        BE.S = E.S - B.S;
+
+        // vector AP
+        pair AE = new pair();
+        AE.F = E.F - A.F;
+        AE.S = E.S - A.S;
+
+        // Variables to store dot product
+        double AB_BE, AB_AE;
+
+        // Calculating the dot product
+        AB_BE = (AB.F * BE.F + AB.S * BE.S);
+        AB_AE = (AB.F * AE.F + AB.S * AE.S);
+
+        // Minimum distance from
+        // point E to the line segment
+        double reqAns = 0;
+
+        // Case 1
+        if (AB_BE > 0) {
+
+            // Finding the magnitude
+            double y = E.S - B.S;
+            double x = E.F - B.F;
+            reqAns = Math.sqrt(x * x + y * y);
+        }
+
+        // Case 2
+        else if (AB_AE < 0) {
+            double y = E.S - A.S;
+            double x = E.F - A.F;
+            reqAns = Math.sqrt(x * x + y * y);
+        }
+
+        // Case 3
+        else {
+
+            // Finding the perpendicular distance
+            double x1 = AB.F;
+            double y1 = AB.S;
+            double x2 = AE.F;
+            double y2 = AE.S;
+            double mod = Math.sqrt(x1 * x1 + y1 * y1);
+            reqAns = Math.abs(x1 * y2 - y1 * x2) / mod;
+        }
+        return reqAns;
+    }
+}
+
+
 // TODO: bound points in angeview
-// TODO: add functionality for mutliple angle dots
+// TODO: create arraylist with all lines to display distances easily
+
+// TODO: pressing: whole pointsView moves when a point is moved. why?
+// TODO: fix zooming: make it over user's fingerprint average and not the center of
+// TODO: the pointsview
+
+
