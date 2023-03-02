@@ -188,8 +188,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                viewTransformation(v, event);
-
                 setScaleDots.forEach((dot) -> {
                     if (dot.isInside((event.getX()), event.getY())) {
                         touchedDot = dot;
@@ -280,10 +278,10 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                     }
                 }
                 invalidate();
+                viewTransformation(v, event);
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                viewTransformation(v, event);
                 if (touchedDot != null) {
                     touchedDot.x = event.getX();
                     touchedDot.y = event.getY();
@@ -293,6 +291,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                     Log.d("ImageView", "Dot moving X: " + touchedDot.x + " Y: " + touchedDot.y);
                 }
                 invalidate();
+                viewTransformation(v, event);
                 break;
 
             case MotionEvent.ACTION_UP:
@@ -360,7 +359,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                             }
                         }
                     }
-
                 viewTransformation(v, event);
                 invalidate();
                 break;
@@ -452,8 +450,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             case MotionEvent.ACTION_MOVE:
                 if (!isOutSide) {
                     if (mode == DRAG) {
-                        view.animate().x(event.getRawX() + xCoOrdinate).y(event.getRawY() + yCoOrdinate).setDuration(0).start();
                         dragged = true;
+                        view.animate().x(event.getRawX() + xCoOrdinate).y(event.getRawY() + yCoOrdinate).setDuration(0).start();
                     }
                     if (mode == ZOOM && event.getPointerCount() == 2) {
                         float newDist1 = spacing(event);

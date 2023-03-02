@@ -79,7 +79,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public int count = 0;
     private DrawableDotImageView pointsView;
     public static File imageFile2;
-    public static TextView angleView;
+    public static EditText angleView;
     public static Thread thread;
     Toolbar toolbar2;
     public ScrollView freeformscroll;
@@ -96,7 +96,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         setContentView(R.layout.freeform_angle_measure);
         pointsView = (DrawableDotImageView) findViewById(R.id.dot_view);
         toolbar2 = (Toolbar) findViewById(R.id.toolbar2);
-        angleView = (TextView) findViewById(R.id.angleView);
+        angleView = (EditText) findViewById(R.id.angleView);
         freeformscroll = (ScrollView) findViewById(R.id.scrollView);
         degRad = (ToggleButton) findViewById(R.id.degRadToggle);
 
@@ -160,7 +160,6 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
         thread.start();
 
-        /*
         angleView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -189,7 +188,6 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
             }
         });
 
-         */
 
         degRad.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -218,6 +216,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public void reset(View view) {
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
+        thread.interrupt();
         currAngle = 0;
         DrawableDotImageView.numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
@@ -232,6 +231,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public void onBackPressed() {
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
+        thread.interrupt();
         currAngle = 0;
         DrawableDotImageView.numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;

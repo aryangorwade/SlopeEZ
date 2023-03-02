@@ -19,7 +19,7 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <TextView
+    <EditText
         android:id="@+id/angleView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -48,12 +48,19 @@
         android:background="@android:color/black"
         android:scrollbars="none">
 
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="setScale"
+                android:text="Set Scale" />
 
             <Button
                 android:layout_width="wrap_content"
