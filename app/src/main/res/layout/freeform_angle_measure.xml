@@ -54,6 +54,26 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+            <Switch
+                android:layout_width="wrap_content"
+                android:id="@+id/lineAngleToggle"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:showText="true"
+                android:textOff="Line"
+                android:textOn="Angle"
+                />
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:id="@+id/degRadToggle"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:showText="true"
+                android:textOff="Radians"
+                android:textOn="Degrees"
+                />
+
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -82,17 +102,6 @@
                 android:background="?attr/selectableItemBackground"
                 android:onClick="remove"
                 android:text="Remove" />
-
-
-            <ToggleButton
-                android:layout_width="wrap_content"
-                android:id="@+id/degRadToggle"
-                android:layout_height="wrap_content"
-                android:background="#FF0000"
-                android:checked="true"
-                android:textOff="Degrees"
-                android:textOn="Radians"
-                />
 
 
         </LinearLayout>

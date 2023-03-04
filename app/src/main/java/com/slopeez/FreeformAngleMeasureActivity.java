@@ -36,6 +36,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -48,6 +49,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -92,8 +94,11 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public ScrollView freeformscroll;
     public static double scaleDist = 0;
     public static boolean removeCurr = false;
-    ToggleButton degRad;
     public static int angleListSize = 0;
+    // boolean to determine whether to create lines or angles
+    public static boolean line = false;
+    public static Switch degRad;
+    public static Switch lineAngle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +110,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         toolbar2 = (Toolbar) findViewById(R.id.toolbar2);
         angleView = (EditText) findViewById(R.id.angleView);
         freeformscroll = (ScrollView) findViewById(R.id.scrollView);
-        degRad = (ToggleButton) findViewById(R.id.degRadToggle);
+        degRad = (Switch) findViewById(R.id.degRadToggle);
+        lineAngle = (Switch) findViewById(R.id.lineAngleToggle);
 
         context = getApplicationContext();
 
@@ -159,7 +165,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                                 if (removeCurr)
                                 {
                                     angleView.setText("Tap dot/line to remove");
-                                } else if (setScaleDots.size() == 2) {
+                                } else if (setScaleDots.size() == 2 || setScaleMode) {
                                     angleView.setText("Tap to place scale dots||");
                                 } else {
                                     angleView.setText("Tap to place dots for angles");
@@ -213,6 +219,20 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                 } else {
                     // The toggle is disabled
                     degree = true;
+                    pointsView.invalidate();
+                }
+            }
+        });
+
+        lineAngle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled
+                    line = false;
+                    pointsView.invalidate();
+                } else {
+                    // The toggle is disabled
+                    line = true;
                     pointsView.invalidate();
                 }
             }
@@ -351,11 +371,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     public void setScale(View view)
     {
-        if (setScaleMode)
-        {
-            setScaleMode = false;
-            angleView.setText("Tap to place dots for angles:");
-        } else {
+        if (setScaleMode == false) {
             setScaleMode = true;
             angleView.setText("Tap to place scale dots||");
             /*
