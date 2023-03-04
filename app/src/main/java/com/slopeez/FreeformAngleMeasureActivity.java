@@ -149,27 +149,11 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (setScaleDots.size() == 2 && scaleDist!= 0) {
+                                if (setScaleDots.size() == 2 && scaleDist != 0) {
                                     dis = Math.sqrt((Math.pow((DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
                                     scaleFactor = scaleDist / dis; // in (distance/pixel)
                                 }
                                 pointsView.invalidate();
-
-                                if (setScaleDots.size() == 2)
-                                {
-                                    DrawableDotImageView.showMeasure = true;
-                                } else {
-                                    showMeasure = false;
-                                }
-
-                                if (removeCurr)
-                                {
-                                    angleView.setText("Tap dot/line to remove");
-                                } else if (setScaleDots.size() == 2 || setScaleMode) {
-                                    angleView.setText("Tap to place scale dots||");
-                                } else {
-                                    angleView.setText("Tap to place dots for angles");
-                                }
                             }
                         });
                     }
@@ -195,12 +179,11 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                 System.out.println(s);
                 if (setScaleMode) {
                     try {
-                        String text = angleView.getText().toString().substring(25);
+                        String text = angleView.getText().toString().substring(20);
                         scaleDist = Double.parseDouble(text);
                         if (scaleDist != 0 && scaleDist > 0 && setScaleDots.size() == 2) {
                             dis = Math.sqrt((Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
                             scaleFactor = scaleDist / dis; // in (distance/pixel)
-                            toast.cancel();
                         }
                     } catch (Exception e) {
 
@@ -259,7 +242,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         setScaleMode = false;
         DrawableDotImageView.touchedDot = null;
         startActivity(new Intent(FreeformAngleMeasureActivity.this, FreeformAngleMeasureActivity.class));
-        overridePendingTransition(0,0);
+        overridePendingTransition(0, 0);
         pointsView.setScaleMode = false;
     }
 
@@ -321,10 +304,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         }
     }
 
-    public void remove (View view)
-    {
-        if (angleList.size() == 0 && setScaleDots.size() == 0)
-        {
+    public void remove(View view) {
+        if (angleList.size() == 0 && setScaleDots.size() == 0) {
             return;
         }
 
@@ -332,6 +313,12 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
             removeCurr = true;
             angleView.setText("Tap dot/line to remove");
         } else {
+            if (setScaleMode || setScaleDots.size() == 2) {
+                angleView.setText("Enter distance here→");
+                angleView.setSelection(angleView.getText().length());
+            } else {
+                angleView.setText("Tap to place dots for angles");
+            }
             removeCurr = false;
         }
     }
@@ -369,19 +356,18 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         }
     }
 
-    public void setScale(View view)
-    {
+    public void setScale(View view) {
+
         if (setScaleMode == false) {
             setScaleMode = true;
-            angleView.setText("Tap to place scale dots||");
-            /*
-            angleView.requestFocus();
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showSoftInput(angleView, InputMethodManager.SHOW_IMPLICIT);
+            angleView.setText("Enter distance here→");
+            angleView.setSelection(angleView.getText().length());
+            CharSequence text = "Tap to place scale dots. Specify distance at end of bar above";
+                int duration = Toast.LENGTH_LONG;
 
-             */
+                FreeformAngleMeasureActivity.toast = Toast.makeText(FreeformAngleMeasureActivity.context, text, duration);
+                FreeformAngleMeasureActivity.toast.show();
         }
-        toastCalled = false;
     }
 
     public void changeColor(View view) {

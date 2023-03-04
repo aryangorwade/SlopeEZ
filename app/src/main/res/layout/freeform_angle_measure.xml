@@ -77,6 +77,13 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:onClick="remove"
+                android:text="Remove" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:background="?attr/selectableItemBackground"
                 android:onClick="setScale"
@@ -95,13 +102,6 @@
                 android:background="?attr/selectableItemBackground"
                 android:onClick="reset"
                 android:text="Reset" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:onClick="remove"
-                android:text="Remove" />
 
 
         </LinearLayout>
