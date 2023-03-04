@@ -155,6 +155,15 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                                 } else {
                                     showMeasure = false;
                                 }
+
+                                if (removeCurr)
+                                {
+                                    angleView.setText("Tap dot/line to remove");
+                                } else if (setScaleDots.size() == 2) {
+                                    angleView.setText("Tap to place scale dots||");
+                                } else {
+                                    angleView.setText("Tap to place dots for angles");
+                                }
                             }
                         });
                     }
@@ -301,10 +310,10 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
         if (removeCurr == false) {
             removeCurr = true;
+            angleView.setText("Tap dot/line to remove");
         } else {
             removeCurr = false;
         }
-        angleView.setText("Tap dot/line to remove");
     }
 
     public static double calcAngle(int position) {
