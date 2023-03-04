@@ -14,7 +14,10 @@ import static com.slopeez.DrawableDotImageView.paintColor;
 import static com.slopeez.DrawableDotImageView.scale;
 import static com.slopeez.DrawableDotImageView.scaleFactor;
 import static com.slopeez.DrawableDotImageView.scalelinePaint;
+import static com.slopeez.DrawableDotImageView.setScaleDots;
 import static com.slopeez.DrawableDotImageView.setScaleMode;
+import static com.slopeez.DrawableDotImageView.showMeasure;
+import static com.slopeez.DrawableDotImageView.toastCalled;
 
 import android.content.Context;
 import android.content.Intent;
@@ -39,6 +42,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -78,9 +82,12 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     public int count = 0;
     private DrawableDotImageView pointsView;
+    public static Toast toast;
     public static File imageFile2;
     public static EditText angleView;
+    public static Context context;
     public static Thread thread;
+    double dis = 0;
     Toolbar toolbar2;
     public ScrollView freeformscroll;
     public static double scaleDist = 0;
@@ -99,6 +106,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         angleView = (EditText) findViewById(R.id.angleView);
         freeformscroll = (ScrollView) findViewById(R.id.scrollView);
         degRad = (ToggleButton) findViewById(R.id.degRadToggle);
+
+        context = getApplicationContext();
 
         // TODO: work on save function and on identification of angle
         // TODO: add perspective correction
@@ -134,22 +143,18 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                anglePaint.setTextSize(50/scale);
-                                scalelinePaint.setStrokeWidth(5/scale);
-
-                                angleListSize = angleList.size();
-                                if (removeCurr)
-                                {
-                                    angleView.setText("Tap dot/line to remove");
-                                } else {
-                                    angleView.setText("Tap to place dots for angles:");
-                                }
-                                for (int i = 0; i < angles.size(); ++i)
-                                {
-                                    Double d = calcAngle(i);
-                                    angles.set(i, d);
+                                if (setScaleDots.size() == 2 && scaleDist!= 0) {
+                                    dis = Math.sqrt((Math.pow((DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
+                                    scaleFactor = scaleDist / dis; // in (distance/pixel)
                                 }
                                 pointsView.invalidate();
+
+                                if (setScaleDots.size() == 2)
+                                {
+                                    DrawableDotImageView.showMeasure = true;
+                                } else {
+                                    showMeasure = false;
+                                }
                             }
                         });
                     }
@@ -163,28 +168,29 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         angleView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                System.out.println("In beforeTextChanged");
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                try {
-                    System.out.println("Setting scale");
-                    scaleDist = Double.parseDouble(angleView.getText().toString());
-                    if (scaleDist != 0) {
-                        System.out.println(angleView.getText());
-                        double dis = Math.sqrt((Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
-                        scaleFactor = scaleDist / dis; // in (distance/pixel)
-                        System.out.println("-------------------------- ScaleFactor: " + scaleFactor);
-                    }
-                } catch (Exception e){
 
-                }
             }
 
             @Override
             public void afterTextChanged(Editable s) {
+                System.out.println(s);
+                if (setScaleMode) {
+                    try {
+                        String text = angleView.getText().toString().substring(25);
+                        scaleDist = Double.parseDouble(text);
+                        if (scaleDist != 0 && scaleDist > 0 && setScaleDots.size() == 2) {
+                            dis = Math.sqrt((Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
+                            scaleFactor = scaleDist / dis; // in (distance/pixel)
+                            toast.cancel();
+                        }
+                    } catch (Exception e) {
 
+                    }
+                }
             }
         });
 
@@ -221,6 +227,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
+        setScaleMode = false;
         DrawableDotImageView.touchedDot = null;
         startActivity(new Intent(FreeformAngleMeasureActivity.this, FreeformAngleMeasureActivity.class));
         overridePendingTransition(0,0);
@@ -237,6 +244,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
         DrawableDotImageView.touchedDot = null;
+        setScaleMode = false;
         dotPaint = null;
         startActivity(new Intent(FreeformAngleMeasureActivity.this, ModeSelect.class));
     }
@@ -286,7 +294,17 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     public void remove (View view)
     {
-        removeCurr = true;
+        if (angleList.size() == 0 && setScaleDots.size() == 0)
+        {
+            return;
+        }
+
+        if (removeCurr == false) {
+            removeCurr = true;
+        } else {
+            removeCurr = false;
+        }
+        angleView.setText("Tap dot/line to remove");
     }
 
     public static double calcAngle(int position) {
@@ -327,9 +345,18 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         if (setScaleMode)
         {
             setScaleMode = false;
+            angleView.setText("Tap to place dots for angles:");
+        } else {
+            setScaleMode = true;
+            angleView.setText("Tap to place scale dots||");
+            /*
+            angleView.requestFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(angleView, InputMethodManager.SHOW_IMPLICIT);
+
+             */
         }
-        setScaleMode = true;
-        angleView.setText("Tap to place two dots to set scale");
+        toastCalled = false;
     }
 
     public void changeColor(View view) {
