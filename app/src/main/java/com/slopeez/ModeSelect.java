@@ -11,8 +11,10 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.squareup.picasso.Picasso;
 
@@ -41,7 +43,7 @@ public class ModeSelect extends AppCompatActivity {
         {
             imgFile = FreeformAngleMeasureActivity.imageFile2;
         }
-    }
+}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -50,7 +52,6 @@ public class ModeSelect extends AppCompatActivity {
         // enabling action bar app icon and behaving it as toggle button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-
         return true;
     }
 
