@@ -7,8 +7,8 @@ android {
     applicationId "com.slopeez"
     minSdkVersion 24
     targetSdkVersion 32
-    versionCode 11
-    versionName "2.5"
+    versionCode 12
+    versionName "2.7"
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     multiDexEnabled true
   }

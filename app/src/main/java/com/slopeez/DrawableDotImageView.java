@@ -360,7 +360,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 if (!setScaleMode) {
                                     angleView.setText("Tap to place dots for angles");
                                 } else {
-                                    angleView.setText("What is this distance||");
+                                    angleView.setText("Enter distance here→");
                                 }                            }
 
                         } else {
