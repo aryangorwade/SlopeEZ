@@ -37,6 +37,12 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
     private Toolbar toolbar3;
     private LinearLayout layout;
     private TextView azimuthView;
+    public boolean isTareActive = false;
+    public Button tareButton;
+    public float[] tareVals = new float[3];
+    public float azimuth_angle;
+    public float roll_angle;
+    public float pitch_angle;
 
     private Sensor mOrientation;
 
@@ -50,12 +56,32 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
         toolbar3 = (Toolbar) findViewById(R.id.toolbar3);
         azimuthView = (TextView) findViewById(R.id.azimuthView);
         layout =(LinearLayout) findViewById(R.id.freeformangle);
+        tareButton = (Button) findViewById(R.id.tareButton);
 
         setSupportActionBar(toolbar3);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
+    }
+
+    public void tare(View view)
+    {
+        if (!isTareActive) {
+            isTareActive = true;
+            tareButton.setText("CANCEL");
+            tareButton.setBackgroundColor(Color.RED);
+            tareVals[0] = azimuth_angle;
+            tareVals[1] = pitch_angle;
+            tareVals[2] = roll_angle;
+        } else {
+            isTareActive = false;
+            tareButton.setText("TARE");
+            tareButton.setBackgroundColor(Color.GRAY);
+            tareVals[0] = 0;
+            tareVals[1] = 0;
+            tareVals[2] = 0;
+        }
     }
 
     protected void onResume() {
@@ -89,14 +115,20 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
     }
 
     public void onSensorChanged(SensorEvent event) {
-        float azimuth_angle = event.values[0];
-        float pitch_angle = event.values[1];
-        float roll_angle = event.values[2];
+        azimuth_angle = event.values[0];
+        pitch_angle = event.values[1];
+        roll_angle = event.values[2];
         // Do something with these orientation angles.
 
-        pitchView.setText("Pitch: " + String.format("%.2f", -pitch_angle) + "°"); // 0 when phone straight up like in emulator
-        rollView.setText("Roll: " + String.format("%.2f", roll_angle) + "°");
-        azimuthView.setText("Azimuth: " + String.format("%.2f", azimuth_angle) + "°");
+        if (!isTareActive) {
+            pitchView.setText("Pitch: " + String.format("%.1f", -pitch_angle) + "°"); // 0 when phone straight up like in emulator
+            rollView.setText("Roll: " + String.format("%.1f", roll_angle) + "°");
+            azimuthView.setText("Azimuth: " + String.format("%.1f", azimuth_angle) + "°");
+        } else {
+            pitchView.setText("Pitch: " + String.format("%.1f", -pitch_angle+tareVals[1]) + "°"); // 0 when phone straight up like in emulator
+            rollView.setText("Roll: " + String.format("%.1f", roll_angle-tareVals[2]) + "°");
+            azimuthView.setText("Azimuth: " + String.format("%.1f", azimuth_angle-tareVals[0]) + "°");
+        }
     }
 
     float[] mGravity;
