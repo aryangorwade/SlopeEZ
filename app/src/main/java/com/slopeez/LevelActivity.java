@@ -1,10 +1,13 @@
 package com.slopeez;
 
 import static com.slopeez.DrawableDotImageView.dotPaint;
+import static com.slopeez.DrawableDotImageView.scaleFactor;
+import static com.slopeez.DrawableDotImageView.setScaleDots;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,21 +33,12 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
     private TextView pitchView;
     private TextView rollView;
     private Thread thread2;
-    private SensorManager sManager;
+    private SensorManager mSensorManager;
     private Toolbar toolbar3;
+    private LinearLayout layout;
+    private TextView azimuthView;
 
-    // Gravity rotational data
-    private float gravity[];
-    // Magnetic rotational data
-    private float magnetic[]; //for magnetic rotational data
-    private float accels[] = new float[3];
-    private float mags[] = new float[3];
-    private float[] values = new float[3];
-
-    // azimuth, pitch and roll
-    private float azimuth;
-    private float pitch;
-    private float roll;
+    private Sensor mOrientation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,16 +46,30 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
         setContentView(R.layout.activity_level);
 
         pitchView = (TextView) findViewById(R.id.pitchView);
-        rollView = (TextView) findViewById(R.id.Roll_view);
+        rollView = (TextView) findViewById(R.id.Roll_View);
         toolbar3 = (Toolbar) findViewById(R.id.toolbar3);
+        azimuthView = (TextView) findViewById(R.id.azimuthView);
+        layout =(LinearLayout) findViewById(R.id.freeformangle);
 
         setSupportActionBar(toolbar3);
 
-        sManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        sManager.registerListener(this, sManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), sManager.SENSOR_DELAY_NORMAL);
-        sManager.registerListener(this, sManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), sManager.SENSOR_DELAY_NORMAL);
-        sManager.registerListener(this, sManager.getDefaultSensor(Sensor.TYPE_GRAVITY), sManager.SENSOR_DELAY_NORMAL);
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+
     }
+
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mOrientation, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
+    }
+
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {  }
 
     @Override
     public void onBackPressed() {
@@ -79,48 +88,19 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
         return true;
     }
 
-    @Override
     public void onSensorChanged(SensorEvent event) {
-        switch (event.sensor.getType()) {
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                mags = event.values.clone();
-                break;
-            case Sensor.TYPE_ACCELEROMETER:
-                accels = event.values.clone();
-                break;
-        }
+        float azimuth_angle = event.values[0];
+        float pitch_angle = event.values[1];
+        float roll_angle = event.values[2];
+        // Do something with these orientation angles.
 
-        if (mags != null && accels != null) {
-            gravity = new float[9];
-            magnetic = new float[9];
-            SensorManager.getRotationMatrix(gravity, magnetic, accels, mags);
-            float[] outGravity = new float[9];
-            SensorManager.remapCoordinateSystem(gravity, SensorManager.AXIS_X,SensorManager.AXIS_Z, outGravity);
-            SensorManager.getOrientation(outGravity, values);
-
-            azimuth = (values[0]) * 57.2957795f; // prev: azimuth = values[0]*57.29f
-            pitch = (values[1]) * 57.2957795f;
-            roll = (values[2]) * 57.2957795f;
-            mags = null;
-            accels = null;
-        }
-
-        // make textview rotate with phone
-        pitchView.setText("Pitch: " + String.format("%.2f", pitch) + "°"); // 0 when phone straight up like in emulator
-        rollView.setText("Roll: " + String.format("%.2f", roll) + "°"); // 0 when phone straight up but landscape like in emulator but landscape
+        pitchView.setText("Pitch: " + String.format("%.2f", -pitch_angle) + "°"); // 0 when phone straight up like in emulator
+        rollView.setText("Roll: " + String.format("%.2f", roll_angle) + "°");
+        azimuthView.setText("Azimuth: " + String.format("%.2f", azimuth_angle) + "°");
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-        sManager.registerListener(this, sManager.getDefaultSensor(Sensor.TYPE_LIGHT), sManager.SENSOR_DELAY_NORMAL);
-    }
+    float[] mGravity;
+    float[] mGeomagnetic;
 
     public void saveImage() {
         /*
