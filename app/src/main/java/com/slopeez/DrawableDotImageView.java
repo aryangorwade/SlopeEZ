@@ -57,6 +57,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static boolean degree;
     public static boolean dragged;
     public static boolean toastCalled;
+    public static int count = 0;
 
 
     // --------------------------------------- DELETE IF FAILS
@@ -141,6 +142,30 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        for (int k = 0; k < angleList.size(); ++k)
+        {
+            ArrayList<Dot> dots = angleList.get(k);
+            for (int i = 0; i < dots.size(); ++i)
+            {
+                Dot dot = dots.get(i);
+                dot.radius = 35/scale;
+                dots.set(i, dot);
+            }
+            angleList.set(k, dots);
+        }
+
+        for (int k = 0; k < lineList.size(); ++k)
+        {
+            ArrayList<Dot> dots = lineList.get(k);
+            for (int i = 0; i < dots.size(); ++i)
+            {
+                Dot dot = dots.get(i);
+                dot.radius = 35/scale;
+                dots.set(i, dot);
+            }
+            lineList.set(k, dots);
+        }
+
         if (dotPaint != null && linePaint != null) {
             if (DrawableDotImageView.paintColor == 0) {
                 dotPaint.setColor(Color.RED);
@@ -179,7 +204,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             for (int j = 0; j < angleList.size(); ++j) {
                 if (numDots.get(j) != 0) {
                     for (int i = 0; i < angleList.get(j).size(); ++i) {
-                        canvas.drawCircle(angleList.get(j).get(i).getX(), angleList.get(j).get(i).getY(), angleList.get(j).get(i).getRadius() / (2.25f*scale), dotPaint);
+                        canvas.drawCircle(angleList.get(j).get(i).getX(), angleList.get(j).get(i).getY(), 35 / (2.5f*scale), dotPaint);
                     }
                 }
 
@@ -219,7 +244,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         }
 
         setScaleDots.forEach((dot) -> {
-            canvas.drawCircle(dot.getX(), dot.getY(), dot.getRadius()/(2.25f*scale), scaledotPaint);
+            canvas.drawCircle(dot.getX(), dot.getY(), 35/(2.5f*scale), scaledotPaint);
         });
 
         if (setScaleDots.size() == 2)
@@ -236,7 +261,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             for (int j = 0; j < lineList.size(); ++j) {
                 if (lineList.get(j).size() != 0) {
                     for (int i = 0; i < lineList.get(j).size(); ++i) {
-                        canvas.drawCircle(lineList.get(j).get(i).getX(), lineList.get(j).get(i).getY(), lineList.get(j).get(i).getRadius() / (2.25f*scale), indiLinePaint);
+                        canvas.drawCircle(lineList.get(j).get(i).getX(), lineList.get(j).get(i).getY(), 35/ (2.5f*scale), indiLinePaint);
                     }
                 }
 
@@ -263,11 +288,10 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             }
         }
 
-
-
-        anglePaint.setTextSize(60);
+        anglePaint.setTextSize(40/scale);
         scalelinePaint.setStrokeWidth(5/scale);
-        distPaint.setTextSize(40/scale);
+        distPaint.setTextSize(30/scale);
+        indiLinePaint.setStrokeWidth(5/scale);
 
         for (int i = 0; i < angles.size(); ++i)
         {
@@ -285,6 +309,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        count = event.getPointerCount();
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -507,10 +532,12 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 }
                 invalidate();
                 viewTransformation(v, event);
+                count = event.getPointerCount();
                 break;
 
             case MotionEvent.ACTION_UP:
-                    if (touchedDot != null) {
+                count = event.getPointerCount();
+                     if (touchedDot != null) {
                         touchedDot = null;
 
                     } else {
@@ -656,9 +683,12 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         }
     }
 
-    // ------------------------------------------------------- ADDED CODE -------------------------
     private void viewTransformation(View view, MotionEvent event) {
         dragged = false;
+        if (event.getPointerCount() == 2)
+        {
+            System.out.println("2 touches fingers");
+        }
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 xCoOrdinate = view.getX() - event.getRawX();
@@ -666,7 +696,9 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
                 start.set(event.getX(), event.getY());
                 isOutSide = false;
-                mode = DRAG;
+                if (event.getPointerCount() == 1) {
+                    mode = DRAG;
+               }
                 lastEvent = null;
                 break;
 
@@ -683,6 +715,12 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 lastEvent[2] = event.getY(0);
                 lastEvent[3] = event.getY(1);
                 d = rotation(event);
+                // TODO: when pivot is set, photo moves. why?
+                if (count == 2) {
+                    // narrowed culprit for view shifting down to these two damn lines
+                    view.setPivotX((lastEvent[0] + lastEvent[1]) / 2);
+                    view.setPivotY((lastEvent[2] + lastEvent[3]) / 2);
+                }
                 break;
 
             case MotionEvent.ACTION_UP:
@@ -701,8 +739,10 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             case MotionEvent.ACTION_MOVE:
                 if (!isOutSide) {
                     if (mode == DRAG) {
-                        dragged = true;
-                        view.animate().x(event.getRawX() + xCoOrdinate).y(event.getRawY() + yCoOrdinate).setDuration(0).start();
+                        if (count == 1) {
+                            dragged = true;
+                            view.animate().x(event.getRawX() + xCoOrdinate).y(event.getRawY() + yCoOrdinate).setDuration(0).start();
+                        }
                     }
                     if (mode == ZOOM && event.getPointerCount() == 2) {
                         float newDist1 = spacing(event);
@@ -715,11 +755,11 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                             }
                             view.setScaleX(scale);
                             view.setScaleY(scale);
-                        }
-                        if (lastEvent != null) {
                             newRot = rotation(event);
                             getRotation = view.getRotation();
                             view.setRotation((float) (view.getRotation() + (newRot - d)));
+                        }
+                        if (lastEvent != null) {
                         }
                     }
                 }
@@ -740,7 +780,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
     public boolean isPointOnLineSegment(PointF staPt, PointF endPt, PointF point) {
         double mindistance = GFG.minDistance(new GFG.pair(staPt.x, staPt.y), new GFG.pair(endPt.x, endPt.y), new GFG.pair (point.x, point.y));
-        if (mindistance <= 25)
+        if (mindistance <= 25/scale)
         {
             return true;
         } else {

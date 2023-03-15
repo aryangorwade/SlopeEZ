@@ -4,6 +4,12 @@ package com.slopeez;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
+import static com.slopeez.DrawableDotImageView.currAngle;
+import static com.slopeez.DrawableDotImageView.numDots;
+import static com.slopeez.DrawableDotImageView.numDotsLines;
+import static com.slopeez.DrawableDotImageView.setScaleMode;
+import static com.slopeez.FreeformAngleMeasureActivity.thread;
+
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -235,5 +241,30 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed()
     {
         return;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        DrawableDotImageView.angleList.clear();
+        DrawableDotImageView.angles.clear();
+        DrawableDotImageView.lineList.clear();
+        DrawableDotImageView.currLine = 0;
+        DrawableDotImageView.currAngle = 0;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        currAngle = 0;
+        numDots.clear();
+        DrawableDotImageView.numSetScaleDots = 0;
+        DrawableDotImageView.setScaleDots.clear();
+        setScaleMode = false;
+        for (int i = 0; i < 200; ++i)
+        {
+            numDots.add(0);
+            numDotsLines.add(0);
+        }
+        DrawableDotImageView.touchedDot = null;
+        FreeformAngleMeasureActivity.pointsView.setScaleMode = false;
     }
 }

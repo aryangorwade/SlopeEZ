@@ -1,8 +1,13 @@
 package com.slopeez;
 
+import static com.slopeez.DrawableDotImageView.currAngle;
 import static com.slopeez.DrawableDotImageView.dotPaint;
+import static com.slopeez.DrawableDotImageView.numDots;
+import static com.slopeez.DrawableDotImageView.numDotsLines;
 import static com.slopeez.DrawableDotImageView.scaleFactor;
 import static com.slopeez.DrawableDotImageView.setScaleDots;
+import static com.slopeez.DrawableDotImageView.setScaleMode;
+import static com.slopeez.FreeformAngleMeasureActivity.thread;
 
 import android.content.Context;
 import android.content.Intent;
@@ -162,5 +167,30 @@ public class LevelActivity extends AppCompatActivity implements SensorEventListe
             saveImage();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        DrawableDotImageView.angleList.clear();
+        DrawableDotImageView.angles.clear();
+        DrawableDotImageView.lineList.clear();
+        DrawableDotImageView.currLine = 0;
+        DrawableDotImageView.currAngle = 0;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        currAngle = 0;
+        numDots.clear();
+        DrawableDotImageView.numSetScaleDots = 0;
+        DrawableDotImageView.setScaleDots.clear();
+        setScaleMode = false;
+        DrawableDotImageView.touchedDot = null;
+        for (int i = 0; i < 200; ++i)
+        {
+            numDots.add(0);
+            numDotsLines.add(0);
+        }
+        FreeformAngleMeasureActivity.pointsView.setScaleMode = false;
     }
 }

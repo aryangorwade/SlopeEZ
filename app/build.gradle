@@ -5,10 +5,10 @@ android {
   buildToolsVersion "25.0.2"
   defaultConfig {
     applicationId "com.slopeez"
-    minSdkVersion 24
+    minSdkVersion 29
     targetSdkVersion 32
-    versionCode 12
-    versionName "2.7"
+    versionCode 13
+    versionName "2.8"
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     multiDexEnabled true
   }

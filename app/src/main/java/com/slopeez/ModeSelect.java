@@ -2,6 +2,10 @@ package com.slopeez;
 
 import static com.slopeez.DrawableDotImageView.currAngle;
 import static com.slopeez.DrawableDotImageView.dotPaint;
+import static com.slopeez.DrawableDotImageView.numDots;
+import static com.slopeez.DrawableDotImageView.numDotsLines;
+import static com.slopeez.DrawableDotImageView.setScaleMode;
+import static com.slopeez.FreeformAngleMeasureActivity.thread;
 import static com.slopeez.ImageDetailActivity.imgFile;
 import static com.slopeez.ImageDetailActivity.imgPath;
 
@@ -60,7 +64,7 @@ public class ModeSelect extends AppCompatActivity {
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
         currAngle = 0;
-        DrawableDotImageView.numDots.clear();
+        numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
         DrawableDotImageView.touchedDot = null;
@@ -81,5 +85,30 @@ public class ModeSelect extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         startActivity(new Intent(ModeSelect.this, MainActivity.class));
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        DrawableDotImageView.angleList.clear();
+        DrawableDotImageView.angles.clear();
+        DrawableDotImageView.lineList.clear();
+        DrawableDotImageView.currLine = 0;
+        DrawableDotImageView.currAngle = 0;
+        if (thread != null) {
+            thread.interrupt();
+        }
+        currAngle = 0;
+        numDots.clear();
+        DrawableDotImageView.numSetScaleDots = 0;
+        DrawableDotImageView.setScaleDots.clear();
+        setScaleMode = false;
+        DrawableDotImageView.touchedDot = null;
+        for (int i = 0; i < 200; ++i)
+        {
+            numDots.add(0);
+            numDotsLines.add(0);
+        }
+        FreeformAngleMeasureActivity.pointsView.setScaleMode = false;
     }
 }

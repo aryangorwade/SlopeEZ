@@ -9,6 +9,8 @@ import static com.slopeez.DrawableDotImageView.currAngle;
 import static com.slopeez.DrawableDotImageView.degree;
 import static com.slopeez.DrawableDotImageView.dotPaint;
 import static com.slopeez.DrawableDotImageView.linePaint;
+import static com.slopeez.DrawableDotImageView.numDots;
+import static com.slopeez.DrawableDotImageView.numDotsLines;
 import static com.slopeez.DrawableDotImageView.numSetScaleDots;
 import static com.slopeez.DrawableDotImageView.paintColor;
 import static com.slopeez.DrawableDotImageView.scale;
@@ -83,7 +85,7 @@ import java.util.Random;
 public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     public int count = 0;
-    private DrawableDotImageView pointsView;
+    public static DrawableDotImageView pointsView;
     public static Toast toast;
     public static File imageFile2;
     public static EditText angleView;
@@ -93,6 +95,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     Toolbar toolbar2;
     public ScrollView freeformscroll;
     public static double scaleDist = 0;
+    public static int currRot = 0;
     public static boolean removeCurr = false;
     public static int angleListSize = 0;
     // boolean to determine whether to create lines or angles
@@ -234,13 +237,21 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public void reset(View view) {
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
+        DrawableDotImageView.lineList.clear();
+        DrawableDotImageView.currLine = 0;
+        DrawableDotImageView.currAngle = 0;
         thread.interrupt();
         currAngle = 0;
-        DrawableDotImageView.numDots.clear();
+        numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
         setScaleMode = false;
         DrawableDotImageView.touchedDot = null;
+        for (int i = 0; i < 200; ++i)
+        {
+            numDots.add(0);
+            numDotsLines.add(0);
+        }
         startActivity(new Intent(FreeformAngleMeasureActivity.this, FreeformAngleMeasureActivity.class));
         overridePendingTransition(0, 0);
         pointsView.setScaleMode = false;
@@ -248,16 +259,24 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
-        thread.interrupt();
+        DrawableDotImageView.lineList.clear();
+        DrawableDotImageView.currLine = 0;
+        DrawableDotImageView.currAngle = 0;
+        if (thread != null) {
+            thread.interrupt();
+        }
         currAngle = 0;
-        DrawableDotImageView.numDots.clear();
+        numDots.clear();
         DrawableDotImageView.numSetScaleDots = 0;
         DrawableDotImageView.setScaleDots.clear();
-        DrawableDotImageView.touchedDot = null;
         setScaleMode = false;
-        dotPaint = null;
+        DrawableDotImageView.touchedDot = null;
+        startActivity(new Intent(FreeformAngleMeasureActivity.this, FreeformAngleMeasureActivity.class));
+        overridePendingTransition(0, 0);
+
         startActivity(new Intent(FreeformAngleMeasureActivity.this, ModeSelect.class));
     }
 
@@ -370,6 +389,16 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         }
     }
 
+    public void changeOrientation(View view)
+    {
+        currRot = currRot + 90;
+        if (currRot >= 360)
+        {
+            currRot = 0;
+        }
+        pointsView.setRotation(currRot);
+    }
+
     public void changeColor(View view) {
 
         if (DrawableDotImageView.paintColor == 0) {
@@ -399,5 +428,27 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         {
             paintColor = 0;
         }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        DrawableDotImageView.angleList.clear();
+        DrawableDotImageView.angles.clear();
+        DrawableDotImageView.lineList.clear();
+        DrawableDotImageView.currLine = 0;
+        DrawableDotImageView.currAngle = 0;
+        thread.interrupt();
+        currAngle = 0;
+        numDots.clear();
+        DrawableDotImageView.numSetScaleDots = 0;
+        DrawableDotImageView.setScaleDots.clear();
+        for (int i = 0; i < 200; ++i) {
+            numDots.add(0);
+            numDotsLines.add(0);
+        }
+        setScaleMode = false;
+        DrawableDotImageView.touchedDot = null;
+        pointsView.setScaleMode = false;
     }
 }
