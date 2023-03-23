@@ -20,6 +20,7 @@ import static com.slopeez.DrawableDotImageView.setScaleDots;
 import static com.slopeez.DrawableDotImageView.setScaleMode;
 import static com.slopeez.DrawableDotImageView.showMeasure;
 import static com.slopeez.DrawableDotImageView.toastCalled;
+import static com.slopeez.ImageDetailActivity.imgFile;
 
 import android.content.Context;
 import android.content.Intent;
@@ -102,6 +103,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public static boolean line = false;
     public static Switch degRad;
     public static Switch lineAngle;
+    public static int width;
+    public static int height;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,9 +135,9 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
  */
         // if the file exists then we are loading that image in our image view.
-        if (ImageDetailActivity.imgFile.exists()) {
-            Picasso.get().load(ImageDetailActivity.imgFile).placeholder(R.drawable.ic_launcher_background).into(pointsView);
-            imageFile2 = ImageDetailActivity.imgFile;
+        if (imgFile.exists()) {
+            Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(pointsView);
+            imageFile2 = imgFile;
         }
 
         // TODO: why only rotate from middle of screen? unintuituve
@@ -156,6 +159,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                                     dis = Math.sqrt((Math.pow((DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
                                     scaleFactor = scaleDist / dis; // in (distance/pixel)
                                 }
+                                width = pointsView.getWidth();
                                 pointsView.invalidate();
                             }
                         });

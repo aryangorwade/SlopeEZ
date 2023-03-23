@@ -3,22 +3,30 @@ package com.slopeez;
 import static com.slopeez.FreeformAngleMeasureActivity.angleListSize;
 import static com.slopeez.FreeformAngleMeasureActivity.angleView;
 import static com.slopeez.FreeformAngleMeasureActivity.calcAngle;
+import static com.slopeez.FreeformAngleMeasureActivity.height;
 import static com.slopeez.FreeformAngleMeasureActivity.line;
+import static com.slopeez.FreeformAngleMeasureActivity.pointsView;
 import static com.slopeez.FreeformAngleMeasureActivity.removeCurr;
 import java.io.*;
 import static com.slopeez.FreeformAngleMeasureActivity.scaleDist;
 import static com.slopeez.FreeformAngleMeasureActivity.thread;
 import static com.slopeez.FreeformAngleMeasureActivity.toast;
+import static com.slopeez.FreeformAngleMeasureActivity.width;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
@@ -58,9 +66,9 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static boolean dragged;
     public static boolean toastCalled;
     public static int count = 0;
+    public static PointF zoomPos;
+    public static Bitmap bmp;
 
-
-    // --------------------------------------- DELETE IF FAILS
     float[] lastEvent = null;
     float d = 0f;
     float newRot = 0f;
@@ -86,6 +94,10 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static ArrayList<ArrayList<Dot>> lineList = new ArrayList<>();
     public static int currLine = 0;
     public static ArrayList<Integer> numDotsLines = new ArrayList<>();
+
+    public static BitmapShader shader;
+    public static Matrix matrix;
+    public static Paint shaderPaint;
 
     public DrawableDotImageView(@NonNull Context context) {
         super(context);
@@ -136,11 +148,31 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             numDots.add(0);
             numDotsLines.add(0);
         }
+
+        width = this.getMeasuredWidth();
+        height = this.getMeasuredHeight();
+
+        matrix = new Matrix();
+        shaderPaint = new Paint();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        /*
+        if (width != 0) {
+            bmp = getBitmapFromView(this);
+        }
+
+         */
+
+        if (bmp != null) {
+            shader = new BitmapShader(bmp, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            shaderPaint.setShader(shader);
+        } else {
+            System.out.println("Bitmap null");
+        }
 
         for (int k = 0; k < angleList.size(); ++k)
         {
@@ -305,6 +337,20 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         } else {
             showMeasure = false;
         }
+
+        if (shaderPaint != null) {
+            canvas.drawCircle(50, 50, 50, shaderPaint);
+            System.out.println("zoom circle drawn");
+        } else {
+            System.out.println("Shaderpaint is null");
+        }
+
+        /*
+        if (width != 0) {
+            DrawableDotImageView.bmp = DrawableDotImageView.getBitmapFromView(pointsView);
+            System.out.println("Bitmap gotten");
+        }
+         */
     }
 
     @Override
@@ -313,6 +359,13 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                if (bmp != null) {
+                    zoomPos = new PointF(event.getX(), event.getY());
+                    matrix.reset();
+                    matrix.postScale(2f, 2f, zoomPos.x, zoomPos.y);
+                    shader.setLocalMatrix(matrix);
+                }
+
                 for (int k = 0; k < setScaleDots.size(); ++k)
                 {
                     if (setScaleDots.get(k).isInside((event.getX()), event.getY())) {
@@ -352,6 +405,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                             justDeleted = true;
                             showMeasure = false;
                             setScaleMode = false;
+                            mode = NONE;
+                            dragged = false;
                             if (!setScaleMode) {
                                 angleView.setText("Tap to place dots for angles");
                             } else {
@@ -388,6 +443,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                     angleView.setText("Enter distance here→");
                                 }                            }
 
+                                mode = NONE;
+                                dragged = false;
                         } else {
                             viewTransformation(v, event);
                         }
@@ -420,6 +477,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 touchedDot = null;
                                 removeCurr = false;
                                 justDeleted = true;
+                                mode = NONE;
+                                dragged = false;
                                 if (!setScaleMode) {
                                     angleView.setText("Tap to place dots for angles");
                                 } else {
@@ -444,6 +503,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                     touchedDot = null;
                                     removeCurr = false;
                                     justDeleted = true;
+                                    mode = NONE;
+                                    dragged = false;
                                     if (!setScaleMode) {
                                         angleView.setText("Tap to place dots for angles");
                                     } else {
@@ -474,6 +535,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 touchedDot = null;
                                 removeCurr = false;
                                 justDeleted = true;
+                                mode = NONE;
+                                dragged = false;
                                 if (!setScaleMode) {
                                     angleView.setText("Tap to place dots for angles");
                                 } else {
@@ -507,6 +570,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 numDotsLines.remove(j);
                                 removeCurr = false;
                                 justDeleted = true;
+                                mode = NONE;
+                                dragged = false;
                                 if (!setScaleMode) {
                                     angleView.setText("Tap to place dots for angles");
                                 } else {
@@ -653,6 +718,14 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         }
         return true;
     }
+/*
+    public static Bitmap getBitmapFromView(View view)
+    {
+        Bitmap bitmap = null;
+        return bitmap;
+    }
+
+ */
 
     public static class Dot {
         private float x;
@@ -681,6 +754,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         public boolean isInside(float x, float y) {
             return (getX() - x) * (getX() - x) + (getY() - y) * (getY() - y) <= radius * radius;
         }
+
     }
 
     private void viewTransformation(View view, MotionEvent event) {
@@ -699,14 +773,23 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 if (event.getPointerCount() == 1) {
                     mode = DRAG;
                }
+                if (event.getPointerCount() == 2) {
+                    mode = ZOOM;
+                }
                 lastEvent = null;
                 break;
 
             case MotionEvent.ACTION_POINTER_DOWN:
                 oldDist = spacing(event);
+
+                if (event.getPointerCount() == 2) {
+                    mode = ZOOM;
+                }
                 if (oldDist > 10f) {
                     midPoint(mid, event);
-                    mode = ZOOM;
+                    if (event.getPointerCount() == 2) {
+                        mode = ZOOM;
+                    }
                 }
 
                 lastEvent = new float[4];
@@ -728,23 +811,42 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                     float x = event.getX();
                     float y = event.getY();
                 }
+                if (event.getPointerCount() == 1) {
+                    mode = DRAG;
+                }
+                if (event.getPointerCount() == 2) {
+                    mode = ZOOM;
+                }
             case MotionEvent.ACTION_OUTSIDE:
                 isOutSide = true;
                 mode = NONE;
                 lastEvent = null;
+                if (event.getPointerCount() == 1) {
+                    mode = DRAG;
+                }
+                if (event.getPointerCount() == 2) {
+                    mode = ZOOM;
+                }
             case MotionEvent.ACTION_POINTER_UP:
                 mode = NONE;
                 lastEvent = null;
+                if (event.getPointerCount() == 1) {
+                    mode = DRAG;
+                }
+                if (event.getPointerCount() == 2) {
+                    mode = ZOOM;
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (!isOutSide) {
-                    if (mode == DRAG) {
+                    if (mode == DRAG && event.getPointerCount() == 1) {
                         if (count == 1) {
                             dragged = true;
                             view.animate().x(event.getRawX() + xCoOrdinate).y(event.getRawY() + yCoOrdinate).setDuration(0).start();
                         }
                     }
                     if (mode == ZOOM && event.getPointerCount() == 2) {
+                        dragged = false;
                         float newDist1 = spacing(event);
                         if (newDist1 > 10f) {
                             scale = newDist1 / oldDist * view.getScaleX();
