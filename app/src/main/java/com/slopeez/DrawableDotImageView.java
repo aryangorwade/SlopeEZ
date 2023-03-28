@@ -66,7 +66,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static boolean dragged;
     public static boolean toastCalled;
     public static int count = 0;
-    public static PointF zoomPos;
     public static Bitmap bmp;
 
     float[] lastEvent = null;
@@ -94,10 +93,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     public static ArrayList<ArrayList<Dot>> lineList = new ArrayList<>();
     public static int currLine = 0;
     public static ArrayList<Integer> numDotsLines = new ArrayList<>();
-
-    public static BitmapShader shader;
-    public static Matrix matrix;
-    public static Paint shaderPaint;
 
     public DrawableDotImageView(@NonNull Context context) {
         super(context);
@@ -152,8 +147,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         width = this.getMeasuredWidth();
         height = this.getMeasuredHeight();
 
-        matrix = new Matrix();
-        shaderPaint = new Paint();
     }
 
     @Override
@@ -166,13 +159,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         }
 
          */
-
-        if (bmp != null) {
-            shader = new BitmapShader(bmp, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-            shaderPaint.setShader(shader);
-        } else {
-            System.out.println("Bitmap null");
-        }
 
         for (int k = 0; k < angleList.size(); ++k)
         {
@@ -337,14 +323,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         } else {
             showMeasure = false;
         }
-
-        if (shaderPaint != null) {
-            canvas.drawCircle(50, 50, 50, shaderPaint);
-            System.out.println("zoom circle drawn");
-        } else {
-            System.out.println("Shaderpaint is null");
-        }
-
         /*
         if (width != 0) {
             DrawableDotImageView.bmp = DrawableDotImageView.getBitmapFromView(pointsView);
@@ -359,13 +337,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (bmp != null) {
-                    zoomPos = new PointF(event.getX(), event.getY());
-                    matrix.reset();
-                    matrix.postScale(2f, 2f, zoomPos.x, zoomPos.y);
-                    shader.setLocalMatrix(matrix);
-                }
-
                 for (int k = 0; k < setScaleDots.size(); ++k)
                 {
                     if (setScaleDots.get(k).isInside((event.getX()), event.getY())) {
@@ -443,8 +414,8 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                     angleView.setText("Enter distance here→");
                                 }                            }
 
-                                mode = NONE;
-                                dragged = false;
+                            mode = NONE;
+                            dragged = false;
                         } else {
                             viewTransformation(v, event);
                         }
@@ -602,106 +573,106 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
 
             case MotionEvent.ACTION_UP:
                 count = event.getPointerCount();
-                     if (touchedDot != null) {
-                        touchedDot = null;
+                if (touchedDot != null) {
+                    touchedDot = null;
 
-                    } else {
+                } else {
 
-                        if (setScaleMode == true && setScaleDots.size() < 2 && !justDeleted) {
-                            setScaleDots.add(new Dot(event.getX(), event.getY(), 35));
-                            invalidate();
-                            if (justDeleted)
-                            {
-                                justDeleted = false;
-                            }
-                        }
-
-                        else {
-                            if (mode == DRAG && dragged == false && !justDeleted) {
-                                ArrayList<Dot> temp;
-
-                                if (line == false) {
-                                    if (numDots.get(currAngle) <= MAX_DOTS - 1) {
-                                        if (numDots.get(currAngle) != 0) {
-                                            temp = angleList.get(currAngle);
-                                        } else {
-                                            temp = new ArrayList<Dot>();
-                                        }
-
-                                        temp.add(new Dot(event.getX(), event.getY(), 35));
-
-                                        if (angleList.size() != 0) {
-                                            angleList.set(currAngle, temp);
-                                        } else {
-                                            angleList.add(temp);
-                                        }
-
-                                        numDots.set(currAngle, (numDots.get(currAngle) + 1));
-
-                                        if (numDots.get(currAngle) == 3) {
-                                            angles.add(calcAngle(currAngle));
-                                        }
-                                        invalidate();
-                                        Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-                                    } else if (numDots.get(currAngle) == 3 && !justDeleted) {
-                                        ++currAngle;
-                                        temp = new ArrayList<Dot>();
-                                        temp.add(new Dot(event.getX(), event.getY(), 35));
-                                        angleList.add(temp);
-
-                                        numDots.set(currAngle, (numDots.get(currAngle) + 1));
-                                        invalidate();
-                                        Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-
-                                        invalidate();
-                                    }
-                                } else {
-                                    // the same for lineList
-                                        if (numDotsLines.get(currLine) <= 1) {
-                                            if (numDotsLines.get(currLine) != 0) {
-                                                temp = lineList.get(currLine);
-                                            } else {
-                                                temp = new ArrayList<Dot>();
-                                            }
-
-                                            temp.add(new Dot(event.getX(), event.getY(), 35));
-
-                                            if (lineList.size() != 0) {
-                                                lineList.set(currLine, temp);
-                                            } else {
-                                                lineList.add(temp);
-                                            }
-
-                                            numDotsLines.set(currLine, (numDotsLines.get(currLine) + 1));
-
-
-                                            invalidate();
-                                            Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-                                        } else if (lineList.get(currLine).size() == 2 && !justDeleted) {
-                                            ++currLine;
-                                            temp = new ArrayList<Dot>();
-                                            temp.add(new Dot(event.getX(), event.getY(), 35));
-                                            lineList.add(temp);
-
-                                            numDotsLines.set(currLine, (numDotsLines.get(currLine) + 1));
-
-                                            invalidate();
-                                            Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
-
-                                            invalidate();
-                                        }
-                                }
-                                if (justDeleted)
-                                {
-                                    justDeleted = false;
-                                }
-                            }
-                            if (justDeleted)
-                            {
-                                justDeleted = false;
-                            }
+                    if (setScaleMode == true && setScaleDots.size() < 2 && !justDeleted) {
+                        setScaleDots.add(new Dot(event.getX(), event.getY(), 35));
+                        invalidate();
+                        if (justDeleted)
+                        {
+                            justDeleted = false;
                         }
                     }
+
+                    else {
+                        if (mode == DRAG && dragged == false && !justDeleted) {
+                            ArrayList<Dot> temp;
+
+                            if (line == false) {
+                                if (numDots.get(currAngle) <= MAX_DOTS - 1) {
+                                    if (numDots.get(currAngle) != 0) {
+                                        temp = angleList.get(currAngle);
+                                    } else {
+                                        temp = new ArrayList<Dot>();
+                                    }
+
+                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+
+                                    if (angleList.size() != 0) {
+                                        angleList.set(currAngle, temp);
+                                    } else {
+                                        angleList.add(temp);
+                                    }
+
+                                    numDots.set(currAngle, (numDots.get(currAngle) + 1));
+
+                                    if (numDots.get(currAngle) == 3) {
+                                        angles.add(calcAngle(currAngle));
+                                    }
+                                    invalidate();
+                                    Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+                                } else if (numDots.get(currAngle) == 3 && !justDeleted) {
+                                    ++currAngle;
+                                    temp = new ArrayList<Dot>();
+                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+                                    angleList.add(temp);
+
+                                    numDots.set(currAngle, (numDots.get(currAngle) + 1));
+                                    invalidate();
+                                    Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+
+                                    invalidate();
+                                }
+                            } else {
+                                // the same for lineList
+                                if (numDotsLines.get(currLine) <= 1) {
+                                    if (numDotsLines.get(currLine) != 0) {
+                                        temp = lineList.get(currLine);
+                                    } else {
+                                        temp = new ArrayList<Dot>();
+                                    }
+
+                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+
+                                    if (lineList.size() != 0) {
+                                        lineList.set(currLine, temp);
+                                    } else {
+                                        lineList.add(temp);
+                                    }
+
+                                    numDotsLines.set(currLine, (numDotsLines.get(currLine) + 1));
+
+
+                                    invalidate();
+                                    Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+                                } else if (lineList.get(currLine).size() == 2 && !justDeleted) {
+                                    ++currLine;
+                                    temp = new ArrayList<Dot>();
+                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+                                    lineList.add(temp);
+
+                                    numDotsLines.set(currLine, (numDotsLines.get(currLine) + 1));
+
+                                    invalidate();
+                                    Log.d("ImageView", "Dot created X: " + event.getX() + " Y: " + event.getY());
+
+                                    invalidate();
+                                }
+                            }
+                            if (justDeleted)
+                            {
+                                justDeleted = false;
+                            }
+                        }
+                        if (justDeleted)
+                        {
+                            justDeleted = false;
+                        }
+                    }
+                }
                 viewTransformation(v, event);
                 invalidate();
                 break;
@@ -772,7 +743,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 isOutSide = false;
                 if (event.getPointerCount() == 1) {
                     mode = DRAG;
-               }
+                }
                 if (event.getPointerCount() == 2) {
                     mode = ZOOM;
                 }
@@ -998,5 +969,4 @@ class GFG
 
 // TODO: fix zooming: make it over user's fingerprint average and not the center of
 // TODO: the pointsview
-
 
