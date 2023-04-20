@@ -1,5 +1,6 @@
 package com.slopeez;
 
+import static com.slopeez.FreeformAngleMeasureActivity.aiActive;
 import static com.slopeez.FreeformAngleMeasureActivity.angleListSize;
 import static com.slopeez.FreeformAngleMeasureActivity.angleView;
 import static com.slopeez.FreeformAngleMeasureActivity.calcAngle;
@@ -39,6 +40,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import org.opencv.core.Point;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -92,7 +95,9 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
     // -----------------------------------------
     public static ArrayList<ArrayList<Dot>> lineList = new ArrayList<>();
     public static int currLine = 0;
+    public static int currAILine = 0;
     public static ArrayList<Integer> numDotsLines = new ArrayList<>();
+    public static ArrayList<Integer> numAiDotsLines = new ArrayList<>();
 
     public DrawableDotImageView(@NonNull Context context) {
         super(context);
@@ -142,6 +147,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
         {
             numDots.add(0);
             numDotsLines.add(0);
+            numAiDotsLines.add(0);
         }
 
         width = this.getMeasuredWidth();
@@ -166,7 +172,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             for (int i = 0; i < dots.size(); ++i)
             {
                 Dot dot = dots.get(i);
-                dot.radius = 35/scale;
+                dot.radius = 35/ (2.5f*scale);
                 dots.set(i, dot);
             }
             angleList.set(k, dots);
@@ -178,7 +184,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             for (int i = 0; i < dots.size(); ++i)
             {
                 Dot dot = dots.get(i);
-                dot.radius = 35/scale;
+                dot.radius = 35/ (2.5f*scale);
                 dots.set(i, dot);
             }
             lineList.set(k, dots);
@@ -306,6 +312,40 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
             }
         }
 
+        // AI ------------------------------------------------------------------
+
+        if (aiActive) {
+            for (int j = 0; j < LineDetector.aiLinesList.size(); ++j) {
+                if (LineDetector.aiLinesList.get(j).size() != 0) {
+                    for (int i = 0; i < LineDetector.aiLinesList.get(j).size(); ++i) {
+                        canvas.drawCircle((float)LineDetector.aiLinesList.get(j).get(i).x, (float)LineDetector.aiLinesList.get(j).get(i).y, 35/ (2.5f*scale), indiLinePaint);
+                    }
+                }
+
+                // draw lines between the three dots: 0 to 1 and 1 to 2
+                if (LineDetector.aiLinesList.get(j).size() == 2) {
+                    //          graphics.drawLine
+                    linePaint.setStrokeWidth(5 / scale);
+                    canvas.drawLine((float)LineDetector.aiLinesList.get(j).get(0).x, (float)LineDetector.aiLinesList.get(j).get(0).y, (float)LineDetector.aiLinesList.get(j).get(1).x, (float)LineDetector.aiLinesList.get(j).get(1).y, indiLinePaint);
+
+                    float centerX = ((float)LineDetector.aiLinesList.get(j).get(0).x +(float)LineDetector.aiLinesList.get(j).get(1).x) / 2;
+                    float centerY = ((float)LineDetector.aiLinesList.get(j).get(0).y + (float)LineDetector.aiLinesList.get(j).get(1).y) / 2;
+
+                    if (scaleDist != 0 && setScaleDots.size() == 2 && showMeasure)
+                    {
+                        double lineDist = Math.sqrt(Math.pow((LineDetector.aiLinesList.get(j).get(0).x - LineDetector.aiLinesList.get(j).get(1).x), 2) + Math.pow((LineDetector.aiLinesList.get(j).get(0).y - LineDetector.aiLinesList.get(j).get(1).y), 2));
+                        canvas.drawText((String.format("%.2f", lineDist * scaleFactor)), ((float)LineDetector.aiLinesList.get(j).get(0).x + (float)LineDetector.aiLinesList.get(j).get(1).x)/2, ((float)LineDetector.aiLinesList.get(j).get(0).y + (float)LineDetector.aiLinesList.get(j).get(1).y)/2, distPaint);
+                    }
+                }
+            }
+
+            if ((removeCurr && angleList.size() != 0) || (removeCurr && setScaleDots.size() != 0) || (removeCurr && LineDetector.aiLinesList.size() != 0))
+            {
+                angleView.setText("Tap dot/line to remove");
+            }
+        }
+ // --------------------------------------------------------------------
+
         anglePaint.setTextSize(40/scale);
         scalelinePaint.setStrokeWidth(5/scale);
         distPaint.setTextSize(30/scale);
@@ -353,7 +393,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 angleView.setText("Tap to place dots for angles");
                             } else {
                                 angleView.setText("Enter distance here→");
-                                angleView.setSelection(angleView.getText().length());
                             }
                         }
 
@@ -382,7 +421,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 angleView.setText("Tap to place dots for angles");
                             } else {
                                 angleView.setText("Enter distance here→");
-                                angleView.setSelection(angleView.getText().length());
                             }                        }
                     }
                 }
@@ -454,7 +492,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                     angleView.setText("Tap to place dots for angles");
                                 } else {
                                     angleView.setText("Enter distance here→");
-                                    angleView.setSelection(angleView.getText().length());
                                 }                            }
 
                         } else if (angleList.get(j).size() == 3)
@@ -480,7 +517,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                         angleView.setText("Tap to place dots for angles");
                                     } else {
                                         angleView.setText("Enter distance here→");
-                                        angleView.setSelection(angleView.getText().length());
                                     }                                }
                             }
                         }
@@ -512,7 +548,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                     angleView.setText("Tap to place dots for angles");
                                 } else {
                                     angleView.setText("Enter distance here→");
-                                    angleView.setSelection(angleView.getText().length());
                                 }                            }
 
                         } else {
@@ -547,12 +582,76 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                     angleView.setText("Tap to place dots for angles");
                                 } else {
                                     angleView.setText("Enter distance here→");
-                                    angleView.setSelection(angleView.getText().length());
                                 }                            }
                         }
                     }
                 }
 
+                // AI -------------------------------------------------
+                for (int i = 0; i < LineDetector.aiLinesList.size(); ++i) { // checks if inside each dot
+                    ArrayList<Dot> dots = new ArrayList<Dot>();
+                    dots.add(new Dot((float)LineDetector.aiLinesList.get(i).get(0).x, (float)LineDetector.aiLinesList.get(i).get(0).y, 35/ (2.5f*scale)));
+                    dots.add(new Dot((float)LineDetector.aiLinesList.get(i).get(1).x, (float)LineDetector.aiLinesList.get(i).get(1).y, 35/ (2.5f*scale)));
+
+                    int finalI = i;
+                    dots.forEach((dot) -> {
+                        if (dot.isInside((event.getX()), event.getY())) {
+                            touchedDot = dot;
+                            Log.d("ImageView", "Dot touched");
+
+                            if (removeCurr)
+                            {
+                                LineDetector.aiLinesList.remove(finalI);
+                                numAiDotsLines.remove(finalI);
+
+                                touchedDot = null;
+                                removeCurr = false;
+                                justDeleted = true;
+                                mode = NONE;
+                                dragged = false;
+                                if (!setScaleMode) {
+                                    angleView.setText("Tap to place dots for angles");
+                                } else {
+                                    angleView.setText("Enter distance here→");
+                                }                            }
+
+                        } else {
+                            viewTransformation(v, event);
+                        }
+                    });
+                }
+
+                for (int j = 0; j < LineDetector.aiLinesList.size(); ++j)
+                {
+                    PointF p0 = new PointF((float)LineDetector.aiLinesList.get(j).get(0).x, (float)LineDetector.aiLinesList.get(j).get(0).y);
+                    if (LineDetector.aiLinesList.get(j).size() > 1)
+                    {
+                        PointF p1 = new PointF((float)LineDetector.aiLinesList.get(j).get(1).x, (float)LineDetector.aiLinesList.get(j).get(1).y);
+                        if (isPointOnLineSegment(p0, p1, new PointF((float) event.getX(), (float) event.getY())))
+                        {
+                            if (removeCurr)
+                            {
+                                LineDetector.aiLinesList.remove(j);
+
+                                if (currAILine > 0) {
+                                    --currAILine;
+                                }
+
+                                touchedDot = null;
+                                numAiDotsLines.remove(j);
+                                removeCurr = false;
+                                justDeleted = true;
+                                mode = NONE;
+                                dragged = false;
+                                if (!setScaleMode) {
+                                    angleView.setText("Tap to place dots for angles");
+                                } else {
+                                    angleView.setText("Enter distance here→");
+                                }                            }
+                        }
+                    }
+                }
+                // -----------------------------------------------------
                 invalidate();
                 viewTransformation(v, event);
                 break;
@@ -579,7 +678,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                 } else {
 
                     if (setScaleMode == true && setScaleDots.size() < 2 && !justDeleted) {
-                        setScaleDots.add(new Dot(event.getX(), event.getY(), 35));
+                        setScaleDots.add(new Dot(event.getX(), event.getY(), 35/ (2.5f*scale)));
                         invalidate();
                         if (justDeleted)
                         {
@@ -599,7 +698,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                         temp = new ArrayList<Dot>();
                                     }
 
-                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+                                    temp.add(new Dot(event.getX(), event.getY(), 35/ (2.5f*scale)));
 
                                     if (angleList.size() != 0) {
                                         angleList.set(currAngle, temp);
@@ -617,7 +716,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 } else if (numDots.get(currAngle) == 3 && !justDeleted) {
                                     ++currAngle;
                                     temp = new ArrayList<Dot>();
-                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+                                    temp.add(new Dot(event.getX(), event.getY(), 35/ (2.5f*scale)));
                                     angleList.add(temp);
 
                                     numDots.set(currAngle, (numDots.get(currAngle) + 1));
@@ -635,7 +734,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                         temp = new ArrayList<Dot>();
                                     }
 
-                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+                                    temp.add(new Dot(event.getX(), event.getY(), 35/ (2.5f*scale)));
 
                                     if (lineList.size() != 0) {
                                         lineList.set(currLine, temp);
@@ -651,7 +750,7 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                                 } else if (lineList.get(currLine).size() == 2 && !justDeleted) {
                                     ++currLine;
                                     temp = new ArrayList<Dot>();
-                                    temp.add(new Dot(event.getX(), event.getY(), 35));
+                                    temp.add(new Dot(event.getX(), event.getY(), 35/ (2.5f*scale)));
                                     lineList.add(temp);
 
                                     numDotsLines.set(currLine, (numDotsLines.get(currLine) + 1));
@@ -821,11 +920,6 @@ public class DrawableDotImageView extends androidx.appcompat.widget.AppCompatIma
                         float newDist1 = spacing(event);
                         if (newDist1 > 10f) {
                             scale = newDist1 / oldDist * view.getScaleX();
-                            // Can't zoom to scale less than default
-                            if (scale < 1.0f)
-                            {
-                                scale = 1.0f;
-                            }
                             view.setScaleX(scale);
                             view.setScaleY(scale);
                             newRot = rotation(event);
@@ -969,4 +1063,3 @@ class GFG
 
 // TODO: fix zooming: make it over user's fingerprint average and not the center of
 // TODO: the pointsview
-
