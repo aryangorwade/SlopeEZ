@@ -24,67 +24,47 @@ import static com.slopeez.ImageDetailActivity.imgFile;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.PointF;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
-import android.net.Uri;
+import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ScrollView;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
-import com.github.chrisbanes.photoview.PhotoView;
 import com.squareup.picasso.Picasso;
-import com.xiaopo.flying.sticker.BitmapStickerIcon;
-import com.xiaopo.flying.sticker.DeleteIconEvent;
-import com.xiaopo.flying.sticker.DrawableSticker;
-import com.xiaopo.flying.sticker.FlipHorizontallyEvent;
-import com.xiaopo.flying.sticker.Sticker;
-import com.xiaopo.flying.sticker.StickerView;
-import com.xiaopo.flying.sticker.TextSticker;
-import com.xiaopo.flying.sticker.ZoomIconEvent;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Random;
 
 public class FreeformAngleMeasureActivity extends AppCompatActivity {
-
     public int count = 0;
     public static DrawableDotImageView pointsView;
     public static Toast toast;
@@ -93,8 +73,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public static Context context;
     public static Thread thread;
     double dis = 0;
+    public static Bitmap img;
     Toolbar toolbar2;
-    public ScrollView freeformscroll;
     public static double scaleDist = 0;
     public static int currRot = 0;
     public static boolean removeCurr = false;
@@ -105,6 +85,20 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public static Switch lineAngle;
     public static int width;
     public static int height;
+    public static boolean aiActive = false;
+    public static Button aiButton;
+
+    // AI popup window
+    Button popupButton;
+    PopupWindow popupWindow;
+    EditText textBox1, textBox2, textBox3;
+    TextView label1, label2, label3;
+    public static int[] aiVals = new int[] {150, 50, 17};
+
+
+    static {
+        System.loadLibrary("opencv_java4");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,9 +109,9 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         pointsView = (DrawableDotImageView) findViewById(R.id.dot_view);
         toolbar2 = (Toolbar) findViewById(R.id.toolbar2);
         angleView = (EditText) findViewById(R.id.angleView);
-        freeformscroll = (ScrollView) findViewById(R.id.scrollView);
         degRad = (Switch) findViewById(R.id.degRadToggle);
         lineAngle = (Switch) findViewById(R.id.lineAngleToggle);
+        aiButton = (Button) findViewById(R.id.aiButton);
 
         context = getApplicationContext();
 
@@ -127,17 +121,11 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         setSupportActionBar(toolbar2);
 
         // ---------------------------------------------------------------------------------------
-/*
-        // on below line getting data which we have passed from our adapter class.
-        imgPath = getIntent().getStringExtra("imgPath");
-        // on below line we are getting our image file from its path.
-        File imgFile = new File(imgPath);
-
- */
         // if the file exists then we are loading that image in our image view.
         if (imgFile.exists()) {
             Picasso.get().load(imgFile).placeholder(R.drawable.ic_launcher_background).into(pointsView);
             imageFile2 = imgFile;
+            img = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
         }
 
         // TODO: why only rotate from middle of screen? unintuituve
@@ -191,6 +179,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                         if (scaleDist != 0 && scaleDist > 0 && setScaleDots.size() == 2) {
                             dis = Math.sqrt((Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getX() - DrawableDotImageView.setScaleDots.get(1).getX()), 2)) + (Math.pow((float) (DrawableDotImageView.setScaleDots.get(0).getY() - DrawableDotImageView.setScaleDots.get(1).getY()), 2)));
                             scaleFactor = scaleDist / dis; // in (distance/pixel)
+                            pointsView.invalidate();
                         }
                     } catch (Exception e) {
 
@@ -227,6 +216,22 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                 }
             }
         });
+
+        final SeekBar[] aiSlider = new SeekBar[1];
+        aiSlider[0] = new SeekBar(pointsView.getContext());
+        Handler handler = new Handler();
+        final CountDownTimer[] timer = new CountDownTimer[1];
+        timer[0] = new CountDownTimer(1, 1) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
     }
 
 
@@ -244,6 +249,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.lineList.clear();
         DrawableDotImageView.currLine = 0;
         DrawableDotImageView.currAngle = 0;
+        LineDetector.reset();
         thread.interrupt();
         currAngle = 0;
         numDots.clear();
@@ -269,6 +275,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.lineList.clear();
         DrawableDotImageView.currLine = 0;
         DrawableDotImageView.currAngle = 0;
+        LineDetector.reset();
         if (thread != null) {
             thread.interrupt();
         }
@@ -328,7 +335,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     }
 
     public void remove(View view) {
-        if (angleList.size() == 0 && setScaleDots.size() == 0) {
+        if (angleList.size() == 0 && setScaleDots.size() == 0 && LineDetector.aiLinesList.size() == 0) {
             return;
         }
 
@@ -442,6 +449,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.lineList.clear();
         DrawableDotImageView.currLine = 0;
         DrawableDotImageView.currAngle = 0;
+        LineDetector.reset();
         thread.interrupt();
         currAngle = 0;
         numDots.clear();
@@ -455,4 +463,118 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.touchedDot = null;
         pointsView.setScaleMode = false;
     }
+
+    public void showAIPopupWindow(View view)
+    {
+        PopupWindow popupWindow = new PopupWindow(view, RelativeLayout.LayoutParams.WRAP_CONTENT,  RelativeLayout.LayoutParams.WRAP_CONTENT, true);
+        popupWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
+        popupWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+
+        //     LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View popupView = LayoutInflater.from(this).inflate(R.layout.popup_window, null);
+
+        popupView.setBackground(ContextCompat.getDrawable(this, R.drawable.popup_border));
+
+        popupWindow.setContentView(popupView);
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+
+        popupView.setOnTouchListener(new View.OnTouchListener() {
+            private float mDx;
+            private float mDy;
+            private float startX;
+            private float startY;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        startX = event.getRawX();
+                        startY = event.getRawY();
+                        int[] location = new int[2];
+                        popupWindow.getContentView().getLocationOnScreen(location);
+
+                        mDx = location[0] - startX;
+                        mDy = location[1] - startY;
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        float newX = event.getRawX() + mDx;
+                        float newY = event.getRawY() + mDy;
+                        popupWindow.update((int) (newX - startX), (int) (newY - startY), -1, -1, true);
+                        return true;
+                }
+                return false;
+            }
+        });
+
+        // dim the background
+        View container = popupWindow.getContentView().getRootView();
+        Context context = popupWindow.getContentView().getContext();
+        ColorDrawable dim = new ColorDrawable(Color.BLACK);
+        dim.setBounds(0, 0, container.getWidth(), container.getHeight());
+        dim.setAlpha(100);
+        container.getOverlay().add(dim);
+
+        // get the text boxes and labels
+        textBox1 = popupView.findViewById(R.id.text_box1);
+        label1 = popupView.findViewById(R.id.label1);
+        textBox2 = popupView.findViewById(R.id.text_box2);
+        label2 = popupView.findViewById(R.id.label2);
+        textBox3 = popupView.findViewById(R.id.text_box3);
+        label3 = popupView.findViewById(R.id.label3);
+
+        textBox1.setText("" + aiVals[0]);
+        textBox2.setText("" + aiVals[1]);
+        textBox3.setText("" + aiVals[2]);
+
+        // create a submit button
+        Button submitButton = popupView.findViewById(R.id.submit_button);
+        Button noAIButton = popupView.findViewById(R.id.noAI_button);
+
+        // add a listener to the submit button
+        submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                submitValues();
+                popupWindow.dismiss();
+                LineDetector.reset();
+                LineDetector.detectEdges(img);
+                aiActive = true;
+                pointsView.invalidate();
+            }
+        });
+
+        noAIButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!aiActive)
+                {
+                    aiActive = true;
+                } else {
+                    aiActive = false;
+                    LineDetector.reset();
+                }
+                popupWindow.dismiss();
+                pointsView.invalidate();
+            }
+        });
+    }
+
+    public void submitValues()
+    {
+        aiVals = new int[3];
+        aiVals[0] = Integer.parseInt(textBox1.getText().toString()); // threshold
+        aiVals[1] = Integer.parseInt(textBox2.getText().toString()); // minLineLength
+        aiVals[2] = Integer.parseInt(textBox3.getText().toString()); // maxLineGap
+    }
+
+    public void aiAnalyze(View view)
+    {
+        showAIPopupWindow(view);
+    }
 }
+
+// TODO: make the ai parameter window handle incorrect input without the app crashing
+// TODO: remove the submit button and make changes to the ai parameters real-time.
+// TODO: implement a slider for the values or say what value bounds are
+// TODO: explain what each value does (maybe in a toast or popup)
+// ignore this line
