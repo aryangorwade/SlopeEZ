@@ -78,13 +78,14 @@ public class LineDetector {
         Utils.bitmapToMat(bmp, img);
         Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGR2GRAY);
 
+        Mat result = new Mat();
+        Imgproc.adaptiveThreshold(gray, result, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
+
         Mat edges = new Mat();
-        Imgproc.Canny(gray, edges, 50, 150, 3, false);
+        Imgproc.Canny(result, edges, 50, 150, 3, false);
 
         Mat lines = new Mat();
         Imgproc.HoughLinesP(edges, lines, 1, Math.PI/180, aiVals[0], aiVals[1], aiVals[2]);
-
-          //   Imgproc.HoughLinesP(edges, lines, 1, Math.PI/180, 100, 30, 10);
 
         float viewHeight = pointsView.getHeight();
         float viewWidth = pointsView.getWidth();
@@ -100,49 +101,8 @@ public class LineDetector {
             dots.add(new Point(x1*factorX, ((y1)*factorY)));
             dots.add(new Point(x2*factorX, ((y2)*factorY)));
             aiLinesList.add(dots);
-
-            System.out.println(x1*factorX + " "  + (y1+50)*factorY);
-            System.out.println(x2*factorX + " "  + (y2+50)*factorY);
-            // Draw lines on the image
-            Imgproc.line(img, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
-        }
-        System.out.println(aiLinesList);
-    }
-
-    /*
-    public static void detectEdges(Bitmap bmp) {
-        Mat src = new Mat();
-        Bitmap bmp32 = bmp.copy(Bitmap.Config.ARGB_8888, true);
-        Utils.bitmapToMat(bmp32, src);
-
-        //
-        Mat dst = new Mat(), cdst = new Mat(), cdstP;
-        // Edge detection
-        Imgproc.Canny(src, dst, 50, 200, 3, false);
-        // Copy edges to the images that will display the results in BGR
-        Imgproc.cvtColor(dst, cdst, Imgproc.COLOR_GRAY2BGR);
-        cdstP = cdst.clone();
-        // Standard Hough Line Transform
-        Mat lines = new Mat(); // will hold the results of the detection
-        Imgproc.HoughLines(dst, lines, 1, Math.PI/180, 150); // runs the actual detection
-        // Draw the lines
-        for (int x = 0; x < lines.rows(); x++) {
-            double rho = lines.get(x, 0)[0],
-                    theta = lines.get(x, 0)[1];
-            double a = Math.cos(theta), b = Math.sin(theta);
-            double x0 = a*rho, y0 = b*rho;
-            Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
-            Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
-            ArrayList<Point> currLine = new ArrayList<Point>();
-            currLine.add(pt1);
-            currLine.add(pt2);
-            System.out.println(currLine);
-            linesList.add(currLine);
-
-            Imgproc.line(cdst, pt1, pt2, new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
         }
     }
-     */
 
     public static void reset()
     {
