@@ -89,11 +89,19 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
     public static Button aiButton;
 
     // AI popup window
-    Button popupButton;
-    PopupWindow popupWindow;
-    EditText textBox1, textBox2, textBox3;
     TextView label1, label2, label3;
-    public static int[] aiVals = new int[] {150, 50, 17};
+    public static int[] aiVals = new int[] {150, 100, 17};
+    private static final String PREFS_NAME = "MyPrefs";
+    private static final String KEY_LAST_SLIDER_VALUE = "last_slider_value";
+    private static final String KEY_LAST_SLIDER_VALUE_1 = "last_slider_value_1";
+    private static final String KEY_LAST_SLIDER_VALUE_2 = "last_slider_value_2";
+    private SharedPreferences mPrefs;
+    private SeekBar mSlider;
+    private SeekBar mslider1;
+    private SeekBar mslider2;
+    public static int lastSliderValue;
+    public static int lastSliderValue1;
+    public static int lastSliderValue2;
 
 
     static {
@@ -114,6 +122,8 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         aiButton = (Button) findViewById(R.id.aiButton);
 
         context = getApplicationContext();
+
+        mPrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // TODO: work on save function and on identification of angle
         // TODO: add perspective correction
@@ -171,7 +181,6 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                System.out.println(s);
                 if (setScaleMode) {
                     try {
                         String text = angleView.getText().toString().substring(20);
@@ -216,22 +225,6 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                 }
             }
         });
-
-        final SeekBar[] aiSlider = new SeekBar[1];
-        aiSlider[0] = new SeekBar(pointsView.getContext());
-        Handler handler = new Handler();
-        final CountDownTimer[] timer = new CountDownTimer[1];
-        timer[0] = new CountDownTimer(1, 1) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-
-            }
-
-            @Override
-            public void onFinish() {
-
-            }
-        };
     }
 
 
@@ -249,6 +242,10 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         DrawableDotImageView.lineList.clear();
         DrawableDotImageView.currLine = 0;
         DrawableDotImageView.currAngle = 0;
+     //   aiVals = new int[3];
+        lastSliderValue = 0;
+        lastSliderValue1 = 100;
+        lastSliderValue2 = 15;
         LineDetector.reset();
         thread.interrupt();
         currAngle = 0;
@@ -269,12 +266,15 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-
         DrawableDotImageView.angleList.clear();
         DrawableDotImageView.angles.clear();
         DrawableDotImageView.lineList.clear();
         DrawableDotImageView.currLine = 0;
         DrawableDotImageView.currAngle = 0;
+    //    aiVals = new int[3];
+        lastSliderValue = 0;
+        lastSliderValue1 = 100;
+        lastSliderValue2 = 15;
         LineDetector.reset();
         if (thread != null) {
             thread.interrupt();
@@ -327,7 +327,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         try (FileOutputStream out = new FileOutputStream(file)) {
             bm.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
             Toast.makeText(FreeformAngleMeasureActivity.this, "saved in " + file.getAbsolutePath(),
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_LONG).show();
             // PNG is a lossless format, the compression factor (100) is ignored
         } catch (IOException e) {
             e.printStackTrace();
@@ -466,6 +466,7 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
 
     public void showAIPopupWindow(View view)
     {
+        Toast.makeText(context, "Warning: max sensitivity, lowest min line length, lowest max line gap can crash phones.", Toast.LENGTH_SHORT).show();
         PopupWindow popupWindow = new PopupWindow(view, RelativeLayout.LayoutParams.WRAP_CONTENT,  RelativeLayout.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
         popupWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
@@ -506,6 +507,11 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
             }
         });
 
+        LineDetector.reset();
+        LineDetector.detectEdges(img);
+        aiActive = true;
+        pointsView.invalidate();
+
         // dim the background
         View container = popupWindow.getContentView().getRootView();
         Context context = popupWindow.getContentView().getContext();
@@ -515,31 +521,102 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
         container.getOverlay().add(dim);
 
         // get the text boxes and labels
-        textBox1 = popupView.findViewById(R.id.text_box1);
         label1 = popupView.findViewById(R.id.label1);
-        textBox2 = popupView.findViewById(R.id.text_box2);
         label2 = popupView.findViewById(R.id.label2);
-        textBox3 = popupView.findViewById(R.id.text_box3);
         label3 = popupView.findViewById(R.id.label3);
 
-        textBox1.setText("" + aiVals[0]);
-        textBox2.setText("" + aiVals[1]);
-        textBox3.setText("" + aiVals[2]);
 
-        // create a submit button
-        Button submitButton = popupView.findViewById(R.id.submit_button);
-        Button noAIButton = popupView.findViewById(R.id.noAI_button);
+        mSlider = popupView.findViewById(R.id.slider1);
+        mSlider.setProgress(150-aiVals[0]);
+        lastSliderValue = mPrefs.getInt(KEY_LAST_SLIDER_VALUE, 0);
+        mSlider.setProgress(lastSliderValue);
 
-        // add a listener to the submit button
-        submitButton.setOnClickListener(new View.OnClickListener() {
+        mslider1 = popupView.findViewById(R.id.slider2);
+        mslider1.setProgress(aiVals[1]);
+        lastSliderValue1 = mPrefs.getInt(KEY_LAST_SLIDER_VALUE_1, 100);
+        mslider1.setProgress(lastSliderValue1);
+
+        mslider2 = popupView.findViewById(R.id.slider3);
+        mslider2.setProgress(aiVals[2]);
+        lastSliderValue2 = mPrefs.getInt(KEY_LAST_SLIDER_VALUE_2, 15);
+        mSlider.setProgress(lastSliderValue2);
+
+        mSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onClick(View v) {
-                submitValues();
-                popupWindow.dismiss();
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Save the current slider value to SharedPreferences
+                SharedPreferences.Editor editor = mPrefs.edit();
+                System.out.println("threshold slider: " + (150-progress));
+                aiVals[0] = 150 - progress;
+                editor.putInt(KEY_LAST_SLIDER_VALUE, progress);
+                editor.apply();
                 LineDetector.reset();
                 LineDetector.detectEdges(img);
                 aiActive = true;
                 pointsView.invalidate();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        mslider1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Save the current slider value to SharedPreferences
+                SharedPreferences.Editor editor = mPrefs.edit();
+                aiVals[1] = progress;
+                System.out.println("min line length slider: " + (progress));
+                editor.putInt(KEY_LAST_SLIDER_VALUE_1, progress);
+                editor.apply();
+                LineDetector.reset();
+                LineDetector.detectEdges(img);
+                aiActive = true;
+                pointsView.invalidate();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        mslider2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Save the current slider value to SharedPreferences
+                SharedPreferences.Editor editor = mPrefs.edit();
+                aiVals[2] = progress;
+                System.out.println("max line gap slider: " + (progress));
+                editor.putInt(KEY_LAST_SLIDER_VALUE_2, progress);
+                editor.apply();
+                LineDetector.reset();
+                LineDetector.detectEdges(img);
+                aiActive = true;
+                pointsView.invalidate();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+
+        // create a submit button
+        Button closeButton = popupView.findViewById(R.id.close_button);
+        Button noAIButton = popupView.findViewById(R.id.noAI_button);
+
+        // add a listener to the submit button
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
             }
         });
 
@@ -557,14 +634,10 @@ public class FreeformAngleMeasureActivity extends AppCompatActivity {
                 pointsView.invalidate();
             }
         });
-    }
 
-    public void submitValues()
-    {
-        aiVals = new int[3];
-        aiVals[0] = Integer.parseInt(textBox1.getText().toString()); // threshold
-        aiVals[1] = Integer.parseInt(textBox2.getText().toString()); // minLineLength
-        aiVals[2] = Integer.parseInt(textBox3.getText().toString()); // maxLineGap
+        System.out.println("stored threshold value: " + lastSliderValue);
+        System.out.println("stored min line length value: " + lastSliderValue1);
+        System.out.println("stored max line gap value: " + lastSliderValue2);
     }
 
     public void aiAnalyze(View view)
